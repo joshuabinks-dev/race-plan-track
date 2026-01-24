@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Race Split Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f6f7f9;
+      padding: 16px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    legend { font-weight: bold; }
+    label { display: block; margin-top: 10px; font-weight: 500; }
+    .hint { font-size: 0.85rem; color: #555; margin-top: 2px; }
+    input, select, button {
+      margin-top: 6px;
+      padding: 8px;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+    }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #0066cc;
+      font-size: 0.95rem;
+      padding: 0;
+      margin-bottom: 8px;
+      cursor: pointer;
+      text-align: left;
+      width: auto;
+      max-width: none;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th { background: #efefef; }
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #1a7f37;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Race Split Calculator</h1>
+
+<fieldset>
+  <legend>Race Setup</legend>
+
+  <label>
+    Race preset
+    <div class="hint">Choose a standard race or one you have created</div>
+    <select id="presetSelect"></select>
+    <div class="hint" id="presetDesc"></div>
+  </label>
+
+  <label>
+    Calculate splits from
+    <div class="hint">Select whether you know your total time or your average target pace</div>
+    <select id="calcMode">
+      <option value="time">Goal time</option>
+      <option value="pace">Average target pace</option>
+    </select>
+  </label>
+
+  <div id="goalTimeBlock">
+    <label>
+      Goal time
+      <div class="hint">Enter total race time (mm:ss)</div>
+      <input type="text" id="goalTime" placeholder="e.g. 4:00" />
+    </label>
+  </div>
+
+  <div id="paceBlock" class="hidden">
+    <label>
+      Average target pace
+      <div class="hint">Time per selected distance (mm:ss)</div>
+      <input type="text" id="paceTime" placeholder="e.g. 1:04" />
+    </label>
+    <label>
+      Pace unit
+      <div class="hint">Distance that the pace applies to</div>
+      <select id="paceUnit">
+        <option value="100">per 100 m</option>
+        <option value="200">per 200 m</option>
+        <option value="400">per 400 m</option>
+        <option value="1000">per 1 km</option>
+      </select>
+    </label>
+  </div>
+
+  
+  <div class="row" style="margin-top: 8px;">
+    <div>
+      <label>
+        Split type
+        <div class="hint">Even splits, or progress faster/slower through the race</div>
+        <select id="splitType">
+          <option value="even">Even splits</option>
+          <option value="negative">Negative split (faster finish)</option>
+          <option value="positive">Positive split (slower finish)</option>
+        </select>
+      </label>
+    </div>
+    <div id="splitOptionsBlock" class="hidden">
+      <label>
+        Apply variation
+        <div class="hint">Choose how the pace changes through the race</div>
+        <select id="splitVariation">
+          <option value="half">First half vs second half</option>
+          <option value="continuous">Continuous start → finish</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="row hidden" id="splitPercentRow">
+    <div>
+      <label>
+        % change
+        <div class="hint">How much faster/slower the second half (or the finish) is compared to the start</div>
+        <input type="number" id="splitPercent" min="0" step="0.1" value="3" />
+      </label>
+    </div>
+  </div>
+
+  <button id="calcBtn">Calculate splits</button>
+
+  <div class="row" style="margin-top:12px;">
+    <div>
+      <label>
+        Copy format
+        <div class="hint">Choose a format for text message/email or Excel</div>
+        <select id="copyFormat">
+          <option value="message">Text message / email (plain text)</option>
+          <option value="excel">Excel (tab-separated)</option>
+        </select>
+      </label>
+    </div>
+    <div>
+      <button id="copyBtn" disabled>Copy results</button>
+      <div class="status hidden" id="copyStatus">Copied!</div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Custom Presets</legend>
+
+  <button class="toggle-btn" id="togglePresets">
+    ▶ Show create / manage custom presets
+  </button>
+
+  <div id="customPresetBlock" class="hidden">
+    <label>
+      Preset name
+      <div class="hint">A name you will recognise later</div>
+      <input type="text" id="customName" placeholder="e.g. 1500m (school track)" />
+    </label>
+
+    <label>
+      Lap structure (metres)
+      <div class="hint">Enter each segment, separated by commas</div>
+      <input type="text" id="customLaps" placeholder="e.g. 300, 400, 400, 400" />
+    </label>
+
+    <button id="addPreset">Save preset</button>
+
+<hr style="margin:16px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+<label>
+  Delete a custom preset
+  <div class="hint">Select a custom preset you created and remove it</div>
+  <select id="deletePresetSelect"></select>
+</label>
+
+<button id="deletePresetBtn" disabled>Delete selected preset</button>
+  </div>
+</fieldset>
+
+<table id="resultTable" class="hidden">
+  <thead>
+    <tr>
+      <th>Lap</th>
+      <th>Distance (m)</th>
+      <th>Split</th>
+      <th>Cumulative</th>
+      <th>Pace (/km)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const basePresets = {
+"400m": [200, 200],
+  "800m": [400, 400],
+  "1500m": [300, 400, 400, 400],
+  "1 mile": [409, 400, 400, 400],
+  "2000m": [400, 400, 400, 400, 400],
+  "3000m": [200, 400, 400, 400, 400, 400, 400, 400],
+  "2 mile": [418, 400, 400, 400, 400, 400, 400, 400],
+  "5000m": [200, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400],
+  "10000m": [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400]
+
+};
+
+const presets = { ...basePresets };
+
+// Track which presets were created by the user in this session
+const customPresetNames = new Set();
+
+const presetSelect = document.getElementById("presetSelect");
+const presetDesc = document.getElementById("presetDesc");
+const calcMode = document.getElementById("calcMode");
+const goalTimeBlock = document.getElementById("goalTimeBlock");
+const paceBlock = document.getElementById("paceBlock");
+const togglePresets = document.getElementById("togglePresets");
+const customPresetBlock = document.getElementById("customPresetBlock");
+const table = document.getElementById("resultTable");
+const tbody = table.querySelector("tbody");
+const copyBtn = document.getElementById("copyBtn");
+const copyFormat = document.getElementById("copyFormat");
+const copyStatus = document.getElementById("copyStatus");
+
+const deletePresetSelect = document.getElementById("deletePresetSelect");
+const deletePresetBtn = document.getElementById("deletePresetBtn");
+
+let lastResults = null;
+
+function summariseLapStructure(laps) {
+  const parts = [];
+  let i = 0;
+  while (i < laps.length) {
+    let count = 1;
+    while (i + count < laps.length && laps[i + count] === laps[i]) {
+      count++;
+    }
+    parts.push(count === 1 ? `${laps[i]}` : `${count} × ${laps[i]}`);
+    i += count;
+  }
+  return parts.join(" + ");
+}
+
+function populatePresets() {
+  const current = presetSelect.value;
+
+  presetSelect.innerHTML = "";
+  for (const name in presets) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = customPresetNames.has(name) ? `${name} (custom)` : name;
+    presetSelect.appendChild(opt);
+  }
+
+  // Keep selection if possible
+  if (current && presets[current]) {
+    presetSelect.value = current;
+  }
+
+  populateDeletePresets();
+}
+
+
+function populateDeletePresets() {
+  if (!deletePresetSelect || !deletePresetBtn) return;
+
+  const customs = Array.from(customPresetNames).sort((a,b)=>a.localeCompare(b));
+  deletePresetSelect.innerHTML = "";
+
+  if (customs.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No custom presets yet";
+    deletePresetSelect.appendChild(opt);
+    deletePresetBtn.disabled = true;
+    return;
+  }
+
+  customs.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    deletePresetSelect.appendChild(opt);
+  });
+
+  deletePresetBtn.disabled = false;
+}
+
+function updatePresetDescription() {
+  const laps = presets[presetSelect.value];
+  if (!laps) { presetDesc.textContent = ""; return; }
+  const total = laps.reduce((a,b)=>a+b,0);
+  presetDesc.textContent =
+    `Lap structure: ${summariseLapStructure(laps)} (Total ${total} m)`;
+}
+
+function parseTime(str) {
+  const parts = str.trim().split(":").map(Number);
+  if (parts.length !== 2 || parts.some(isNaN)) return null;
+  return parts[0] * 60 + parts[1];
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+
+
+function formatPace(secondsPerKm) {
+  const m = Math.floor(secondsPerKm / 60);
+  const s = Math.round(secondsPerKm % 60).toString().padStart(2, "0");
+  return `${m}:${s}/km`;
+}
+function buildCopyText(results) {
+  const header = ["Lap","Dist","Split","Cumul","Pace/km"].join(" | ");
+  const sep = "-".repeat(header.length);
+  const lines = results.rows.map(r => `${r.lap} | ${r.dist} | ${r.split} | ${r.cum} | ${r.pace}`);
+  return [
+    `Race: ${results.presetName}`,
+    `Lap structure: ${summariseLapStructure(results.laps)} (Total ${results.totalDistance} m)`,
+    "",
+    header,
+    sep,
+    ...lines
+  ].join("\n");
+}
+
+function buildCopyExcel(results) {
+  const lines = [];
+  lines.push(["Race", results.presetName].join("\t"));
+  lines.push(["Lap structure", `${summariseLapStructure(results.laps)} (Total ${results.totalDistance} m)`].join("\t"));
+  lines.push("");
+  lines.push(["Lap","Distance (m)","Split","Cumulative","Pace (/km)"].join("	"));
+  results.rows.forEach(r => lines.push([r.lap, r.dist, r.split, r.cum, r.pace].join("	")));
+  return lines.join("\n");
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+  return ok;
+}
+
+
+function normaliseForClipboard(text) {
+  // Ensure we copy true plain text (helps prevent odd SMS paste issues).
+  return String(text)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\u00A0/g, " ")   // non‑breaking spaces
+    .replace(/[\u200B\uFEFF]/g, ""); // zero‑width chars
+}
+
+function maybeDecodeUrlEncoded(text) {
+  // If something upstream accidentally URL-encodes the output, undo it.
+  // We only decode when it looks like URL-encoding (e.g. %20, %0A).
+  const s = String(text);
+  if (!/(%0A|%0D|%09|%20)/i.test(s) && !/%[0-9A-F]{2}/i.test(s)) return s;
+
+  try {
+    const decoded = decodeURIComponent(s);
+    // Accept decoded if it *meaningfully* changes and contains whitespace/newlines.
+    if (decoded !== s && (/[\s\n]/.test(decoded))) return decoded;
+  } catch (_) {}
+  return s;
+}
+
+function parseLapStructureInput(raw) {
+  // Required format: comma-separated whole numbers (metres), e.g. 300, 400, 400, 400
+  const value = (raw || "").trim();
+  if (!value) return { ok: false, error: "Please enter a lap structure, e.g. 300, 400, 400, 400." };
+
+  const parts = value.split(",").map(p => p.trim());
+  if (parts.some(p => p.length === 0)) {
+    return { ok: false, error: "Lap structure must be comma-separated numbers (no empty values). Example: 300, 400, 400, 400." };
+  }
+
+  const laps = [];
+  for (const p of parts) {
+    if (!/^\d+$/.test(p)) {
+      return { ok: false, error: `Invalid lap value "${p}". Use whole numbers in metres, separated by commas (e.g. 300, 400, 400, 400).` };
+    }
+    const n = Number(p);
+    if (!Number.isFinite(n) || n <= 0) {
+      return { ok: false, error: `Invalid lap value "${p}". Each segment must be a positive number of metres.` };
+    }
+    laps.push(n);
+  }
+
+  return { ok: true, laps };
+}
+
+calcMode.addEventListener("change", () => {
+  goalTimeBlock.classList.toggle("hidden", calcMode.value === "pace");
+  paceBlock.classList.toggle("hidden", calcMode.value === "time");
+});
+
+// Split options
+const splitType = document.getElementById("splitType");
+const splitOptionsBlock = document.getElementById("splitOptionsBlock");
+const splitPercentRow = document.getElementById("splitPercentRow");
+const splitVariation = document.getElementById("splitVariation");
+const splitPercent = document.getElementById("splitPercent");
+
+function updateSplitUI() {
+  const isEven = splitType.value === "even";
+  splitOptionsBlock.classList.toggle("hidden", isEven);
+  splitPercentRow.classList.toggle("hidden", isEven);
+
+  // Reset % field when even splits is selected
+  if (isEven) splitPercent.value = 0;
+}
+splitType.addEventListener("change", updateSplitUI);
+updateSplitUI();
+
+function computeSplitSeconds(laps, totalSeconds, splitTypeValue, variationValue, pctValue) {
+  const totalDistance = laps.reduce((a,b)=>a+b, 0);
+  // Even splits (default): proportional by distance
+  if (splitTypeValue === "even" || !pctValue || pctValue <= 0) {
+    return laps.map(d => totalSeconds * (d / totalDistance));
+  }
+
+  const p = pctValue / 100;
+  const sign = splitTypeValue === "negative" ? -1 : 1; // negative: faster later => lower pace later
+
+  if (variationValue === "half") {
+    const halfDist = totalDistance / 2;
+    const d1 = halfDist;
+    const d2 = totalDistance - halfDist;
+    const pace1 = totalSeconds / (d1 + (1 + sign * p) * d2); // seconds per meter for first half
+    const pace2 = pace1 * (1 + sign * p);
+
+    const splits = [];
+    let x = 0;
+    for (const d of laps) {
+      const x0 = x;
+      const x1 = x + d;
+      const mid = halfDist;
+      let t = 0;
+      if (x1 <= mid) {
+        t = pace1 * d;
+      } else if (x0 >= mid) {
+        t = pace2 * d;
+      } else {
+        const dFirst = mid - x0;
+        const dSecond = x1 - mid;
+        t = pace1 * dFirst + pace2 * dSecond;
+      }
+      splits.push(t);
+      x = x1;
+    }
+    return splits;
+  }
+
+  // Continuous linear change in pace from start to finish.
+  // pace(x) = a + b*(x/totalDistance), where pace is seconds per meter.
+  // end pace = a + b = a*(1 + sign*p)  => b = a*sign*p
+  // totalSeconds = ∫ pace dx = totalDistance * a * (1 + sign*p/2)
+  const a = totalSeconds / (totalDistance * (1 + sign * p / 2));
+  const b = a * sign * p;
+
+  const splits = [];
+  let x = 0;
+  for (const d of laps) {
+    const x0 = x;
+    const x1 = x + d;
+    const t = a * (x1 - x0) + (b / (2 * totalDistance)) * (x1 * x1 - x0 * x0);
+    splits.push(t);
+    x = x1;
+  }
+  return splits;
+}
+
+
+togglePresets.addEventListener("click", () => {
+  const hidden = customPresetBlock.classList.toggle("hidden");
+  togglePresets.textContent = hidden
+    ? "▶ Show create / manage custom presets"
+    : "▼ Hide create / manage custom presets";
+});
+
+presetSelect.addEventListener("change", updatePresetDescription);
+
+document.getElementById("calcBtn").addEventListener("click", () => {
+  const laps = presets[presetSelect.value];
+  if (!laps) return;
+
+  let totalSeconds;
+  if (calcMode.value === "time") {
+    totalSeconds = parseTime(document.getElementById("goalTime").value);
+    if (totalSeconds === null) return alert("Enter goal time as mm:ss");
+  } else {
+    const paceSec = parseTime(document.getElementById("paceTime").value);
+    const unit = Number(document.getElementById("paceUnit").value);
+    if (paceSec === null) return alert("Enter pace as mm:ss");
+    totalSeconds = paceSec * (laps.reduce((a,b)=>a+b,0) / unit);
+    document.getElementById("goalTime").value = formatTime(totalSeconds);
+  }
+
+  tbody.innerHTML = "";
+  table.classList.remove("hidden");
+
+  let cumulative = 0;
+  const totalDistance = laps.reduce((a,b)=>a+b,0);
+  const rows = [];
+
+  const splitTypeValue = splitType.value;
+  const variationValue = splitVariation.value;
+  const pctValue = Number(splitPercent.value) || 0;
+
+  const splitSecs = computeSplitSeconds(laps, totalSeconds, splitTypeValue, variationValue, pctValue);
+
+  laps.forEach((dist, i) => {
+    const splitSec = splitSecs[i];
+    cumulative += splitSec;
+
+    const pacePerKm = (splitSec / dist) * 1000;
+
+    const split = formatTime(splitSec);
+    const cum = formatTime(cumulative);
+    const pace = formatPace(pacePerKm);
+
+    rows.push({ lap:i+1, dist, split, cum, pace });
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${i+1}</td><td>${dist}</td><td>${split}</td><td>${cum}</td><td>${pace}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  lastResults = {
+    presetName: presetSelect.value,
+    laps: laps,
+    totalDistance,
+    rows
+  };
+
+  copyBtn.disabled = false;
+  copyStatus.classList.add("hidden");
+});
+
+
+copyBtn.addEventListener("click", async () => {
+  if (!lastResults) return;
+
+  let text = copyFormat.value === "excel"
+    ? buildCopyExcel(lastResults)
+    : buildCopyText(lastResults);
+
+  // Fix: prevent URL-encoded looking output (e.g. %20) when pasting into phone SMS apps
+  text = normaliseForClipboard(maybeDecodeUrlEncoded(text));
+
+  try {
+    await copyToClipboard(text);
+    copyStatus.classList.remove("hidden");
+    setTimeout(()=>copyStatus.classList.add("hidden"),1500);
+  } catch {
+    alert("Copy failed");
+  }
+});
+
+
+document.getElementById("addPreset").addEventListener("click", () => {
+  const name = document.getElementById("customName").value.trim();
+  const lapInput = document.getElementById("customLaps").value;
+
+  if (!name) return alert("Enter a preset name.");
+
+  const parsed = parseLapStructureInput(lapInput);
+  if (!parsed.ok) {
+    return alert(parsed.error);
+  }
+  const laps = parsed.laps;
+
+  // Prevent overwriting built-in presets
+  if (basePresets[name] && !customPresetNames.has(name)) {
+    return alert("That name matches a standard preset. Please choose a different name.");
+  }
+
+  presets[name] = laps;
+  customPresetNames.add(name);
+
+  populatePresets();
+  presetSelect.value = name;
+  updatePresetDescription();
+
+  document.getElementById("customName").value = "";
+  document.getElementById("customLaps").value = "";
+
+  populateDeletePresets();
+
+  // Collapse the custom preset section after saving
+  customPresetBlock.classList.add("hidden");
+  togglePresets.textContent = "▶ Show create / manage custom presets";
+});
+deletePresetBtn.addEventListener("click", () => {
+  const name = deletePresetSelect.value;
+
+  if (!name || !customPresetNames.has(name)) return;
+
+  const ok = confirm(`Delete custom preset "${name}"?`);
+  if (!ok) return;
+
+  delete presets[name];
+  customPresetNames.delete(name);
+
+  const wasSelected = presetSelect.value === name;
+
+  populatePresets();
+
+  if (wasSelected) {
+    const first = presetSelect.options[0]?.value;
+    if (first) presetSelect.value = first;
+  }
+
+  updatePresetDescription();
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  populatePresets();
+  updatePresetDescription();
+});
+
+
+
+
+</script>
+
+</body>
+</html>
