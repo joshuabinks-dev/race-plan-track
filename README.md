@@ -1,2 +1,2 @@
 # race-split-calculator
-Blackbutt Runners Race Split Calculator
+Blackbutt Runners Race Plan & Track
