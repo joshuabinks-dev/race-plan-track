@@ -1,0 +1,1799 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Race Plan & Track</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+:root{
+  --bg1: #f7f9fc;
+  --bg2: #ffffff;
+  --surface: rgba(255,255,255,0.88);
+  --border: rgba(17, 24, 39, 0.12);
+  --text: #0f172a;
+  --muted: rgba(15,23,42,0.68);
+  --accent: #2563eb;
+  --accent-2: #1d4ed8;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --shadow: 0 10px 30px rgba(2,6,23,0.10);
+  --shadow-sm: 0 6px 18px rgba(2,6,23,0.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pad: 14px;
+  --pad-sm: 10px;
+  --font: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+}
+
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f6f7f9;
+      padding: 16px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    legend { font-weight: bold; }
+    label { display: block; margin-top: 10px; font-weight: 500; }
+    .hint { font-size: 0.85rem; color: #555; margin-top: 2px; }
+    input, select, button {
+      margin-top: 6px;
+      padding: 8px;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+    }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #0066cc;
+      font-size: 0.95rem;
+      padding: 0;
+      margin-bottom: 8px;
+      cursor: pointer;
+      text-align: left;
+      width: auto;
+      max-width: none;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th { background: #efefef; }
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #1a7f37;
+    }
+  
+    /* Stopwatch */
+    #stopwatchFieldset .sw-label { font-size: 0.85rem; color:#444; margin-bottom:4px; font-weight:600; }
+    #stopwatchFieldset .sw-time { font-size: 2rem; font-variant-numeric: tabular-nums; line-height:1.1; }
+    #stopwatchFieldset .sw-next { font-size: 1.1rem; font-weight:600; margin-top:6px; }
+    #stopwatchFieldset .sw-sub { margin-top:6px; font-size:0.95rem; color:#333; }
+    #stopwatchFieldset .sw-delta { font-weight:700; font-variant-numeric: tabular-nums; }
+    #stopwatchFieldset .sw-pill {
+      display:inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin-left: 8px;
+      border: 1px solid #ddd;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    #stopwatchFieldset .sw-good { color:#0f5132; background:#d1e7dd; border-color:#badbcc; }
+    #stopwatchFieldset .sw-bad { color:#842029; background:#f8d7da; border-color:#f5c2c7; }
+    #stopwatchFieldset .sw-neutral { color:#444; background:#f0f0f0; border-color:#ddd; }
+    #swTable td.good { background:#d1e7dd; }
+    #swTable td.bad { background:#f8d7da; }
+
+
+    /* Spacing between results table and stopwatch */
+    #resultTable { margin-bottom: 16px; }
+    #stopwatchFieldset { margin-top: 16px; }
+/* Mobile portrait: Lap Log as stacked cards (no horizontal scrolling) */
+#swMobileLog { display:none; margin-top: 10px; }
+#swMobileLog .sw-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+#swMobileLog .sw-card h4 { margin: 0 0 8px 0; font-size: 14px; }
+#swMobileLog .sw-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid #eee; }
+#swMobileLog .sw-row:first-of-type { border-top: 0; }
+#swMobileLog .sw-label { font-weight: 600; color: #444; }
+#swMobileLog .sw-val { text-align: right; }
+#swMobileLog .sw-val.good { background:#d1e7dd; padding: 2px 6px; border-radius: 6px; }
+#swMobileLog .sw-val.bad { background:#f8d7da; padding: 2px 6px; border-radius: 6px; }
+
+@media (max-width: 700px) {
+  #swTable { display: none !important; }
+  #swMobileLog { display: block; }
+}
+
+
+
+    /* --- UX polish (layout + visual hierarchy) --- */
+    h1 { margin: 10px 0 18px; letter-spacing: -0.02em; }
+    body { line-height: 1.35; }
+
+    fieldset {
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.04);
+      border-color: #d7dbe2;
+    }
+    legend {
+      padding: 0 6px;
+      font-size: 1.02rem;
+    }
+
+    /* Inputs: reduce max width on wide screens, full-width on mobile */
+    input, select, button { border-radius: 10px; border: 1px solid #d7dbe2; background: #fff; }
+    input:focus, select:focus {
+      outline: 2px solid rgba(0,102,204,0.22);
+      outline-offset: 2px;
+      border-color: #9fc6ef;
+    }
+
+    /* Buttons */
+    button {
+      border-color: #cfd6df;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+      transition: transform 0.02s ease-in-out, box-shadow 0.12s ease, background 0.12s ease;
+    }
+    button:active { transform: translateY(1px); }
+    button.primary {
+      background: #0b5ed7;
+      color: #fff;
+      border-color: #0b5ed7;
+    }
+    button.primary:hover:not([disabled]) { filter: brightness(0.98); }
+    button[disabled] { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    .toggle-btn { font-weight: 600; }
+
+    /* Tables */
+    table { border-radius: 12px; overflow: hidden; }
+    th { font-weight: 700; }
+    th, td { border-color: #e3e7ee; }
+    #resultTable, #swTable { box-shadow: 0 1px 1px rgba(0,0,0,0.03); }
+
+    /* Stopwatch: make Total Time the hero */
+    #stopwatchFieldset .sw-time#swTotal { font-size: 2.5rem; }
+    #stopwatchFieldset .sw-time#swLap { font-size: 1.9rem; }
+
+    /* Stopwatch layout panels */
+    #stopwatchFieldset .sw-panel {
+      padding: 10px 12px;
+      border: 1px solid #e3e7ee;
+      border-radius: 14px;
+      background: #fbfcfe;
+    }
+    #stopwatchFieldset .sw-sub { color:#2b2f36; }
+
+    /* Mobile Lap Log cards: clearer grouping + highlight latest */
+    #swMobileLog .sw-card { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    #swMobileLog .sw-card h4 { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+    #swMobileLog .sw-card:last-child { border-color:#c7ced8; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    #swMobileLog .sw-row { border-top-color: #f0f2f6; }
+    #swMobileLog .sw-label { font-size: 0.9rem; }
+
+    /* Responsive: keep controls comfortable */
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      input, select, button { max-width: none; }
+      .row { gap: 10px; }
+    }
+
+
+
+/* --- Visual system (non-functional UX layer) --- */
+html, body { height: 100%; }
+body{
+  font-family: var(--font);
+  color: var(--text);
+  background: radial-gradient(1200px 700px at 20% 0%, rgba(37,99,235,0.10), transparent 55%),
+              radial-gradient(900px 600px at 100% 20%, rgba(22,163,74,0.08), transparent 50%),
+              linear-gradient(180deg, var(--bg1), var(--bg2));
+}
+.container{ max-width: 980px; }
+h1,h2,h3{ letter-spacing: -0.02em; }
+.section-title, legend{ color: var(--text); }
+.small, .muted{ color: var(--muted); }
+
+
+/* --- Tables: consistent typography and readability --- */
+table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+th, td{
+  padding: 10px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+thead th{
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(6px);
+  z-index: 1;
+  font-weight: 650;
+  color: var(--text);
+}
+tbody tr:nth-child(even) td{
+  background: rgba(2,6,23,0.02);
+}
+tbody tr:hover td{
+  background: rgba(37,99,235,0.06);
+}
+.table-wrap{
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.75);
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* --- Sections/cards --- */
+fieldset{
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 14px 10px;
+}
+legend{
+  padding: 0 10px;
+  font-weight: 700;
+}
+hr{ border: none; border-top: 1px solid var(--border); }
+
+
+/* --- Controls: consistent accent + focus --- */
+button, .btn{
+  border-radius: 12px;
+}
+button.primary, .primary{
+  background: var(--accent);
+  border-color: var(--accent-2);
+}
+button.primary:hover, .primary:hover{
+  filter: brightness(0.97);
+}
+button:focus, select:focus, input:focus, textarea:focus{
+  outline: 2px solid rgba(37,99,235,0.28);
+  outline-offset: 2px;
+}
+/* traffic lights */
+.pill.green{ background: rgba(22,163,74,0.14); color: var(--success); border-color: rgba(22,163,74,0.35); }
+.pill.red{ background: rgba(220,38,38,0.12); color: var(--danger); border-color: rgba(220,38,38,0.35); }
+.pill.neutral{ background: rgba(15,23,42,0.07); color: rgba(15,23,42,0.70); border-color: rgba(15,23,42,0.12); }
+
+
+/* --- Copy UI: segmented control look (no behavior changes) --- */
+.copy-seg{
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.75);
+  box-shadow: var(--shadow-sm);
+}
+.copy-seg select{
+  border: none !important;
+  background: transparent !important;
+  padding: 10px 12px;
+  height: auto;
+  min-width: 150px;
+  border-right: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  font-weight: 600;
+}
+.copy-seg button{
+  border: none !important;
+  background: transparent;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+.copy-seg button:hover{
+  background: rgba(37,99,235,0.10);
+}
+.copy-seg button:active{
+  background: rgba(37,99,235,0.16);
+}
+@media (max-width: 700px){
+  .copy-seg{ width: 100%; }
+  .copy-seg select{ flex: 1; min-width: 0; }
+  .copy-seg button{ width: 42%; }
+}
+</style>
+</head>
+<body>
+
+<h1>Race Plan & Track</h1>
+
+<fieldset>
+  <legend>🏁 Race Setup</legend>
+
+  <label>
+    Race preset
+    <div class="hint">Choose a standard race or one you have created</div>
+    <select id="presetSelect"></select>
+    <div class="hint" id="presetDesc"></div>
+  </label>
+
+  <label>
+    Calculate splits from
+    <div class="hint">Select whether you know your total time or your average target pace</div>
+    <select id="calcMode">
+      <option value="time">Goal time</option>
+      <option value="pace">Average target pace</option>
+    </select>
+  </label>
+
+  <div id="goalTimeBlock">
+    <label>
+      Goal time
+      <div class="hint">Enter total race time (mm:ss)</div>
+      <input type="text" id="goalTime" placeholder="e.g. 4:00" />
+    </label>
+  </div>
+
+  <div id="paceBlock" class="hidden">
+    <label>
+      Average target pace
+      <div class="hint">Time per selected distance (mm:ss)</div>
+      <input type="text" id="paceTime" placeholder="e.g. 1:04" />
+    </label>
+    <label>
+      Pace unit
+      <div class="hint">Distance that the pace applies to</div>
+      <select id="paceUnit">
+        <option value="100">per 100 m</option>
+        <option value="200">per 200 m</option>
+        <option value="400">per 400 m</option>
+        <option value="1000">per 1 km</option>
+      </select>
+    </label>
+  </div>
+
+  
+  <div class="row" style="margin-top: 8px;">
+    <div>
+      <label>
+        Split type
+        <div class="hint">Even splits, or progress faster/slower through the race</div>
+        <select id="splitType">
+          <option value="even">Even splits</option>
+          <option value="negative">Negative split (faster finish)</option>
+          <option value="positive">Positive split (slower finish)</option>
+        </select>
+      </label>
+    </div>
+    <div id="splitOptionsBlock" class="hidden">
+      <label>
+        Apply variation
+        <div class="hint">Choose how the pace changes through the race</div>
+        <select id="splitVariation">
+          <option value="half">First half vs second half</option>
+          <option value="continuous">Continuous start → finish</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="row hidden" id="splitPercentRow">
+    <div>
+      <label>
+        % change
+        <div class="hint">How much faster/slower the second half (or the finish) is compared to the start</div>
+        <input type="number" id="splitPercent" min="0" step="0.1" value="3" />
+      </label>
+    </div>
+  </div>
+
+  <button id="calcBtn">Calculate splits</button>
+
+  <div class="row" style="margin-top:12px;">
+<div>
+      <label style="display:inline-flex; align-items:center; gap:8px;">Copy format: <select id="copyFormat" disabled><option selected value="image">Image</option>
+<option value="tsv">Table</option></select></label><button id="copyBtn" disabled style="margin-left:8px;" type="button">Copy</button>
+      <div class="status hidden" id="copyStatus">Copied!</div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>⚙️ Custom Presets</legend>
+
+  <button class="toggle-btn" id="togglePresets">
+    ▶ Show create / manage custom presets
+  </button>
+
+  <div id="customPresetBlock" class="hidden">
+    <label>
+      Preset name
+      <div class="hint">A name you will recognise later</div>
+      <input type="text" id="customName" placeholder="e.g. 1500m (school track)" />
+    </label>
+
+    <label>
+      Lap structure (metres)
+      <div class="hint">Enter each segment, separated by commas</div>
+      <input type="text" id="customLaps" placeholder="e.g. 300, 400, 400, 400" />
+    </label>
+
+    <button id="addPreset">Save preset</button>
+
+<hr style="margin:16px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+<label>
+  Delete a custom preset
+  <div class="hint">Select a custom preset you created and remove it</div>
+  <select id="deletePresetSelect"></select>
+</label>
+
+<button id="deletePresetBtn" disabled>Delete selected preset</button>
+  </div>
+</fieldset>
+
+
+
+
+
+<table id="resultTable" class="hidden">
+  <thead>
+    <tr>
+      <th>Lap</th>
+      <th>Distance (m)</th>
+      <th>Split</th>
+      <th>Cumulative</th>
+      <th>Pace (/km)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table></div></div></div></div>
+
+<fieldset id="stopwatchFieldset" class="hidden">
+  <legend>⏱ Race Tracking Stopwatch</legend>
+
+  <div class="row" style="margin-top:8px;">
+<div class="sw-panel" style="flex:1; min-width:240px;">
+  <div class="sw-label">Total time</div>
+  <div class="sw-time" id="swTotal">0:00.0</div>
+  <div class="sw-sub">
+    End of lap cumulative target: <span id="swLastCumTarget" class="sw-delta">—</span><br>
+    Last lap cumulative vs target: <span id="swLastCumDelta" class="sw-delta">—</span>
+    <span id="swLastCumPill" class="sw-pill sw-neutral">Ready</span>
+  </div>
+  <!-- keep start timestamp for Lap Log copy header (hidden from UI) -->
+  <span id="swStartStamp" class="hidden">—</span>
+</div>
+
+<div class="sw-panel" style="flex:1; min-width:240px;">
+  <div class="sw-label">Current lap</div>
+  <div class="sw-time" id="swLap">0:00.0</div>
+  <div class="sw-sub">Current lap target: <span id="swCurrLapTarget" class="sw-delta">—</span></div>
+</div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div>
+      <button id="swStartBtn" type="button">Start</button>
+    </div>
+    <div>
+      <button id="swLapBtn" type="button" disabled>Lap</button>
+    </div>
+    <div>
+      <button id="swResetBtn" type="button" disabled>Reset</button>
+    </div>
+  </div>
+
+  <div class="hint" style="margin-top:8px;">
+    Tip: Press <b>Lap</b> at each lap/segment marker. The app will compare your actual split and cumulative time to the calculated targets.
+  </div>
+
+  <div class="row" style="margin-top:8px;">
+    <div>
+      <label style="display:inline-flex; align-items:center; gap:8px;">Copy format: <select id="swCopyFormat" disabled><option selected value="image">Image</option>
+<option value="tsv">Table</option></select></label><button id="swCopyBtn" type="button" disabled style="margin-left:8px;">Copy</button>
+      <div class="status hidden" id="swCopyStatus" style="display:inline-block; margin-left:8px;">Copied!</div>
+    </div>
+  </div>
+
+  <div class="table-wrap"><table id="swTable" class="hidden">
+    <thead>
+      <tr>
+        <th>Lap</th>
+        <th>Target split</th>
+        <th>Actual split</th>
+        <th>Δ split</th>
+        <th>Target cumul</th>
+        <th>Actual cumul</th>
+        <th>Δ cumul</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div id="swMobileLog" class="hidden"></div>
+</fieldset>
+
+
+
+<script>
+'use strict';
+function $(id) {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`Missing element #${id}`);
+  return el;
+}
+
+const basePresets = {
+"400m": [200, 200],
+  "800m": [400, 400],
+  "1500m": [300, 400, 400, 400],
+  "1 mile": [409, 400, 400, 400],
+  "2000m": [400, 400, 400, 400, 400],
+  "3000m": [200, 400, 400, 400, 400, 400, 400, 400],
+  "2 mile": [418, 400, 400, 400, 400, 400, 400, 400],
+  "5000m": [200, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400],
+  "10000m": [400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400, 400]
+
+};
+
+const presets = { ...basePresets };
+
+// Track which presets were created by the user in this session
+const customPresetNames = new Set();
+
+const presetSelect = document.getElementById("presetSelect");
+const presetDesc = document.getElementById("presetDesc");
+const calcMode = document.getElementById("calcMode");
+const goalTimeBlock = document.getElementById("goalTimeBlock");
+const paceBlock = document.getElementById("paceBlock");
+const togglePresets = document.getElementById("togglePresets");
+const customPresetBlock = document.getElementById("customPresetBlock");
+const table = document.getElementById("resultTable");
+const tbody = table.querySelector("tbody");
+const stopwatchFieldset = document.getElementById("stopwatchFieldset");
+const copyBtn = document.getElementById("copyBtn");
+const copyStatus = document.getElementById("copyStatus");
+
+const deletePresetSelect = document.getElementById("deletePresetSelect");
+const deletePresetBtn = document.getElementById("deletePresetBtn");
+
+let lastResults = null;
+
+function summariseLapStructure(laps) {
+  const parts = [];
+  let i = 0;
+  while (i < laps.length) {
+    let count = 1;
+    while (i + count < laps.length && laps[i + count] === laps[i]) {
+      count++;
+    }
+    parts.push(count === 1 ? `${laps[i]}` : `${count} × ${laps[i]}`);
+    i += count;
+  }
+  return parts.join(" + ");
+}
+
+function populatePresets() {
+  const current = presetSelect.value;
+
+  presetSelect.innerHTML = "";
+  for (const name in presets) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = customPresetNames.has(name) ? `${name} (custom)` : name;
+    presetSelect.appendChild(opt);
+  }
+
+  // Keep selection if possible
+  if (current && presets[current]) {
+    presetSelect.value = current;
+  }
+
+  populateDeletePresets();
+}
+
+
+function populateDeletePresets() {
+  if (!deletePresetSelect || !deletePresetBtn) return;
+
+  const customs = Array.from(customPresetNames).sort((a,b)=>a.localeCompare(b));
+  deletePresetSelect.innerHTML = "";
+
+  if (customs.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No custom presets yet";
+    deletePresetSelect.appendChild(opt);
+    deletePresetBtn.disabled = true;
+    return;
+  }
+
+  customs.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    deletePresetSelect.appendChild(opt);
+  });
+
+  deletePresetBtn.disabled = false;
+}
+
+function updatePresetDescription() {
+  const laps = presets[presetSelect.value];
+  if (!laps) { presetDesc.textContent = ""; return; }
+  const total = laps.reduce((a,b)=>a+b,0);
+  presetDesc.textContent =
+    `Lap structure: ${summariseLapStructure(laps)} (Total ${total} m)`;
+}
+
+function parseTime(str) {
+  const parts = str.trim().split(":").map(Number);
+  if (parts.length !== 2 || parts.some(isNaN)) return null;
+  return parts[0] * 60 + parts[1];
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+
+
+function formatPace(secondsPerKm) {
+  const m = Math.floor(secondsPerKm / 60);
+  const s = Math.round(secondsPerKm % 60).toString().padStart(2, "0");
+  return `${m}:${s}/km`;
+}
+
+function buildCopyExcel(results) {
+  const lines = [];
+  lines.push(["Race", results.presetName].join("\t"));
+  lines.push(["Lap structure", `${summariseLapStructure(results.laps)} (Total ${results.totalDistance} m)`].join("\t"));
+  lines.push("");
+  lines.push(["Lap","Distance (m)","Split","Cumulative","Pace (/km)"].join("	"));
+  results.rows.forEach(r => lines.push([r.lap, r.dist, r.split, r.cum, r.pace].join("	")));
+  return lines.join("\n");
+}
+
+function buildSplitsTableTSV(results) {
+  // TSV/table copy: include Race (preset name) but exclude Lap structure
+  const lines = [];
+  if (results && results.presetName) {
+    lines.push(["Race", results.presetName].join("\t"));
+    lines.push(""); // spacer line
+  }
+  lines.push(["Lap","Distance (m)","Split","Cumulative","Pace (/km)"].join("\t"));
+  results.rows.forEach(r => lines.push([r.lap, r.dist, r.split, r.cum, r.pace].join("\t")));
+  return lines.join("\n");
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+  return ok;
+}
+
+
+// ---- Copy table as image (PNG) for SMS / email ----
+function formatDateTime(d) {
+  try {
+    return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit" });
+  } catch {
+    return String(d);
+  }
+}
+
+function isElementRenderable(el) {
+  const r = el.getBoundingClientRect();
+  return r.width > 2 && r.height > 2;
+}
+
+function drawTableToCanvas(tableEl, titleText, detailLines=[]) {
+  const scale = Math.max(2, Math.round(window.devicePixelRatio || 1)); // crisp in messages
+  const tableRect = tableEl.getBoundingClientRect();
+  const pad = 12;
+  const headerH = 20 + (detailLines.length * 16);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil((tableRect.width + pad*2) * scale);
+  canvas.height = Math.ceil((tableRect.height + pad*2 + headerH) * scale);
+
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+
+  // background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width/scale, canvas.height/scale);
+
+  // title
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 16px Arial";
+  ctx.textBaseline = "middle";
+  ctx.fillText(titleText, pad, pad + 10);
+  ctx.font = "12px Arial";
+  ctx.fillStyle = "#444";
+  detailLines.forEach((line, i) => {
+    ctx.fillText(String(line), pad, pad + 26 + (i * 16));
+  });
+
+  // table origin
+  const ox = pad;
+  const oy = pad + headerH;
+
+  // draw cells based on DOM positions (requires table visible)
+  const cells = tableEl.querySelectorAll("th, td");
+  cells.forEach(cell => {
+    const cr = cell.getBoundingClientRect();
+    const x = ox + (cr.left - tableRect.left);
+    const y = oy + (cr.top - tableRect.top);
+    const w = cr.width;
+    const ht = cr.height;
+
+    // cell background
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x, y, w, ht);
+
+    // border
+    ctx.strokeStyle = "#cccccc";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, ht);
+
+    // text
+    const cs = getComputedStyle(cell);
+    const isHeader = cell.tagName.toLowerCase() === "th";
+    const fontSize = parseFloat(cs.fontSize) || 13;
+    const fontFamily = cs.fontFamily || "Arial";
+    const weight = isHeader ? "bold" : (cs.fontWeight || "normal");
+    ctx.font = `${weight} ${fontSize}px ${fontFamily}`;
+    ctx.fillStyle = (cs.color && cs.color !== "rgba(0, 0, 0, 0)") ? cs.color : "#111";
+    ctx.textBaseline = "middle";
+
+    const paddingLeft = 8;
+    const paddingRight = 8;
+
+    // alignment
+    const ta = (cs.textAlign || "left");
+    let tx = x + paddingLeft;
+    if (ta === "center") tx = x + w/2;
+    if (ta === "right") tx = x + w - paddingRight;
+
+    const ty = y + ht/2;
+
+    const text = (cell.innerText || "").replace(/\s+/g, " ").trim();
+
+    // clip text within cell
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x+1, y+1, w-2, ht-2);
+    ctx.clip();
+
+    // ellipsize if too long
+    const maxW = w - paddingLeft - paddingRight;
+    let drawText = text;
+    if (drawText) {
+      let measured = ctx.measureText(drawText).width;
+      if (measured > maxW) {
+        while (drawText.length > 1 && measured > maxW) {
+          drawText = drawText.slice(0, -1);
+          measured = ctx.measureText(drawText + "…").width;
+        }
+        drawText = drawText + "…";
+      }
+      if (ta === "center") ctx.textAlign = "center";
+      else if (ta === "right") ctx.textAlign = "right";
+      else ctx.textAlign = "left";
+      ctx.fillText(drawText, tx, ty);
+    }
+    ctx.restore();
+  });
+
+  // outer border
+  ctx.strokeStyle = "#888";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ox, oy, tableRect.width, tableRect.height);
+
+  return canvas;
+}
+
+async function copyTableAsImage(tableEl, titleText, detailLines=[]) {
+  // Returns one of: "clipboard", "share", "tab", or false
+  if (!tableEl) {
+    alert("Table isn't ready yet. Calculate splits first.");
+    return false;
+  }
+
+  const canClipboardImage = !!(navigator.clipboard && window.ClipboardItem && navigator.clipboard.write);
+  const isSecure = (window.isSecureContext === true);
+
+  // Local file contexts often block clipboard image + share(file). Prefer tab fallback.
+  const likelyRestricted = !isSecure;
+
+  // Pre-open a fallback tab immediately (user gesture safe) when clipboard is unavailable or restricted.
+  const shouldPreopen = (!canClipboardImage) || likelyRestricted;
+  let fallbackWin = null;
+  if (shouldPreopen) {
+    try { fallbackWin = window.open("about:blank", "_blank", "noopener,noreferrer"); } catch (e) { fallbackWin = null; }
+  }
+
+  let renderEl = tableEl;
+  let cleanup = null;
+
+  if (!isElementRenderable(tableEl)) {
+    const clone = tableEl.cloneNode(true);
+    clone.removeAttribute("id");
+    clone.style.display = "table";
+    clone.style.visibility = "visible";
+    clone.style.opacity = "0";
+    clone.style.pointerEvents = "none";
+
+    const holder = document.createElement("div");
+    holder.style.position = "fixed";
+    holder.style.left = "-10000px";
+    holder.style.top = "0";
+    holder.style.width = "max-content";
+    holder.style.height = "max-content";
+    holder.style.display = "block";
+    holder.style.visibility = "visible";
+    holder.style.opacity = "0";
+    holder.style.pointerEvents = "none";
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+
+    renderEl = clone;
+    cleanup = () => holder.remove();
+
+    const r = clone.getBoundingClientRect();
+    const hasRows = !!clone.querySelector("tbody tr") || !!clone.querySelector("tr");
+    if ((r.width < 5 || r.height < 5) && !hasRows) {
+      cleanup();
+      alert("Lap Log isn't ready yet. Record at least one lap first.");
+      return false;
+    }
+  }
+
+  let blob = null;
+  try {
+    const canvas = drawTableToCanvas(renderEl, titleText, detailLines);
+
+    // If restricted, go straight to tab (avoid misleading success)
+    if (likelyRestricted) {
+      const dataUrl = canvas.toDataURL("image/png");
+      if (fallbackWin && !fallbackWin.closed) fallbackWin.location.href = dataUrl;
+      else window.open(dataUrl, "_blank", "noopener,noreferrer");
+      return "tab";
+    }
+
+    blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.95));
+    if (!blob) {
+      const dataUrl = canvas.toDataURL("image/png");
+      if (fallbackWin && !fallbackWin.closed) fallbackWin.location.href = dataUrl;
+      else window.open(dataUrl, "_blank", "noopener,noreferrer");
+      return "tab";
+    }
+
+    // 1) Clipboard copy (secure contexts only)
+    if (canClipboardImage) {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        if (fallbackWin && !fallbackWin.closed) fallbackWin.close();
+        return "clipboard";
+      } catch (e) {
+        // fall through
+      }
+    }
+
+    // 2) Web Share with files (secure contexts)
+    if (navigator.share) {
+      try {
+        const file = new File([blob], (safeFileName(titleText) || "table") + ".png", { type: "image/png" });
+        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: titleText });
+          if (fallbackWin && !fallbackWin.closed) fallbackWin.close();
+          return "share";
+        }
+      } catch (e) {
+        // fall through
+      }
+    }
+
+    // 3) Tab fallback
+    const url = URL.createObjectURL(blob);
+    if (fallbackWin && !fallbackWin.closed) fallbackWin.location.href = url;
+    else window.open(url, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return "tab";
+
+  } catch (err) {
+    // Last-ditch: open in tab if possible
+    try {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        if (fallbackWin && !fallbackWin.closed) fallbackWin.location.href = url;
+        else window.open(url, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        return "tab";
+      }
+    } catch(e) {}
+    alert("Image export failed on this device/browser. Try 'Table' copy instead.");
+    return false;
+  } finally {
+    if (cleanup) cleanup();
+  }
+}
+
+function getRaceDescriptionText() {
+  const el = document.getElementById("presetDesc");
+  const txt = (el && el.textContent) ? el.textContent.trim() : "";
+  return txt || "";
+}
+
+function getRaceNameText() {
+  // Use the selected preset name as the race label (e.g. 400m)
+  return (presetSelect && presetSelect.value) ? presetSelect.value : "";
+}
+
+function getLapStructureHeaderText() {
+  // Prefer computed structure from lastResults (matches current preset + any custom laps)
+  if (typeof lastResults !== "undefined" && lastResults && Array.isArray(lastResults.laps) && lastResults.laps.length) {
+    const summary = summariseLapStructure(lastResults.laps);
+    const total = lastResults.totalDistance != null ? lastResults.totalDistance : "";
+    return total ? `${summary} (Total ${total} m)` : summary;
+  }
+  // Fallback: try to extract from the preset description text if present
+  const desc = getRaceDescriptionText();
+  // Common formats include "... (Total 1500 m)" or "Lap structure: ..."
+  const match = desc.match(/(\d[\s\S]*?\(Total\s*\d+\s*m\))/i);
+  return match ? match[1].trim() : "";
+}
+
+
+function normaliseForClipboard(text) {
+  // Ensure we copy true plain text (helps prevent odd SMS paste issues).
+  return String(text)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\u00A0/g, " ")   // non‑breaking spaces
+    .replace(/[\u200B\uFEFF]/g, ""); // zero‑width chars
+}
+
+function maybeDecodeUrlEncoded(text) {
+  // If something upstream accidentally URL-encodes the output, undo it.
+  // We only decode when it looks like URL-encoding (e.g. %20, %0A).
+  const s = String(text);
+  if (!/(%0A|%0D|%09|%20)/i.test(s) && !/%[0-9A-F]{2}/i.test(s)) return s;
+
+  try {
+    const decoded = decodeURIComponent(s);
+    // Accept decoded if it *meaningfully* changes and contains whitespace/newlines.
+    if (decoded !== s && (/[\s\n]/.test(decoded))) return decoded;
+  } catch (_) {}
+  return s;
+}
+
+function parseLapStructureInput(raw) {
+  // Required format: comma-separated whole numbers (metres), e.g. 300, 400, 400, 400
+  const value = (raw || "").trim();
+  if (!value) return { ok: false, error: "Please enter a lap structure, e.g. 300, 400, 400, 400." };
+
+  const parts = value.split(",").map(p => p.trim());
+  if (parts.some(p => p.length === 0)) {
+    return { ok: false, error: "Lap structure must be comma-separated numbers (no empty values). Example: 300, 400, 400, 400." };
+  }
+
+  const laps = [];
+  for (const p of parts) {
+    if (!/^\d+$/.test(p)) {
+      return { ok: false, error: `Invalid lap value "${p}". Use whole numbers in metres, separated by commas (e.g. 300, 400, 400, 400).` };
+    }
+    const n = Number(p);
+    if (!Number.isFinite(n) || n <= 0) {
+      return { ok: false, error: `Invalid lap value "${p}". Each segment must be a positive number of metres.` };
+    }
+    laps.push(n);
+  }
+
+  return { ok: true, laps };
+}
+
+calcMode.addEventListener("change", () => {
+  goalTimeBlock.classList.toggle("hidden", calcMode.value === "pace");
+  paceBlock.classList.toggle("hidden", calcMode.value === "time");
+});
+
+// Split options
+const splitType = document.getElementById("splitType");
+const splitOptionsBlock = document.getElementById("splitOptionsBlock");
+const splitPercentRow = document.getElementById("splitPercentRow");
+const splitVariation = document.getElementById("splitVariation");
+const splitPercent = document.getElementById("splitPercent");
+
+function updateSplitUI() {
+  const isEven = splitType.value === "even";
+  splitOptionsBlock.classList.toggle("hidden", isEven);
+  splitPercentRow.classList.toggle("hidden", isEven);
+
+  // Reset % field when even splits is selected
+  if (isEven) splitPercent.value = 0;
+}
+splitType.addEventListener("change", updateSplitUI);
+updateSplitUI();
+
+function computeSplitSeconds(laps, totalSeconds, splitTypeValue, variationValue, pctValue) {
+  const totalDistance = laps.reduce((a,b)=>a+b, 0);
+  // Even splits (default): proportional by distance
+  if (splitTypeValue === "even" || !pctValue || pctValue <= 0) {
+    return laps.map(d => totalSeconds * (d / totalDistance));
+  }
+
+  const p = pctValue / 100;
+  const sign = splitTypeValue === "negative" ? -1 : 1; // negative: faster later => lower pace later
+
+  if (variationValue === "half") {
+    const halfDist = totalDistance / 2;
+    const d1 = halfDist;
+    const d2 = totalDistance - halfDist;
+    const pace1 = totalSeconds / (d1 + (1 + sign * p) * d2); // seconds per meter for first half
+    const pace2 = pace1 * (1 + sign * p);
+
+    const splits = [];
+    let x = 0;
+    for (const d of laps) {
+      const x0 = x;
+      const x1 = x + d;
+      const mid = halfDist;
+      let t = 0;
+      if (x1 <= mid) {
+        t = pace1 * d;
+      } else if (x0 >= mid) {
+        t = pace2 * d;
+      } else {
+        const dFirst = mid - x0;
+        const dSecond = x1 - mid;
+        t = pace1 * dFirst + pace2 * dSecond;
+      }
+      splits.push(t);
+      x = x1;
+    }
+    return splits;
+  }
+
+  // Continuous linear change in pace from start to finish.
+  // pace(x) = a + b*(x/totalDistance), where pace is seconds per meter.
+  // end pace = a + b = a*(1 + sign*p)  => b = a*sign*p
+  // totalSeconds = ∫ pace dx = totalDistance * a * (1 + sign*p/2)
+  const a = totalSeconds / (totalDistance * (1 + sign * p / 2));
+  const b = a * sign * p;
+
+  const splits = [];
+  let x = 0;
+  for (const d of laps) {
+    const x0 = x;
+    const x1 = x + d;
+    const t = a * (x1 - x0) + (b / (2 * totalDistance)) * (x1 * x1 - x0 * x0);
+    splits.push(t);
+    x = x1;
+  }
+  return splits;
+}
+
+
+togglePresets.addEventListener("click", () => {
+  const hidden = customPresetBlock.classList.toggle("hidden");
+  togglePresets.textContent = hidden
+    ? "▶ Show create / manage custom presets"
+    : "▼ Hide create / manage custom presets";
+});
+
+presetSelect.addEventListener("change", updatePresetDescription);
+
+document.getElementById("calcBtn").addEventListener("click", () => {
+  const laps = presets[presetSelect.value];
+  if (!laps) return;
+
+  let totalSeconds;
+  if (calcMode.value === "time") {
+    totalSeconds = parseTime(document.getElementById("goalTime").value);
+    if (totalSeconds === null) return alert("Enter goal time as mm:ss");
+  } else {
+    const paceSec = parseTime(document.getElementById("paceTime").value);
+    const unit = Number(document.getElementById("paceUnit").value);
+    if (paceSec === null) return alert("Enter pace as mm:ss");
+    totalSeconds = paceSec * (laps.reduce((a,b)=>a+b,0) / unit);
+    document.getElementById("goalTime").value = formatTime(totalSeconds);
+  }
+
+  tbody.innerHTML = "";
+  table.classList.remove("hidden");
+
+  let cumulative = 0;
+  const totalDistance = laps.reduce((a,b)=>a+b,0);
+  const rows = [];
+
+  const splitTypeValue = splitType.value;
+  const variationValue = splitVariation.value;
+  const pctValue = Number(splitPercent.value) || 0;
+
+  const splitSecs = computeSplitSeconds(laps, totalSeconds, splitTypeValue, variationValue, pctValue);
+
+  // Targets are loaded into the stopwatch after lastResults is created.
+
+  laps.forEach((dist, i) => {
+    const splitSec = splitSecs[i];
+    cumulative += splitSec;
+
+    const pacePerKm = (splitSec / dist) * 1000;
+
+    const split = formatTime(splitSec);
+    const cum = formatTime(cumulative);
+    const pace = formatPace(pacePerKm);
+
+    rows.push({ lap:i+1, dist, split, cum, pace });
+    const tr = document.createElement("tr");
+    const c1 = document.createElement("td"); c1.textContent = String(i + 1);
+    const c2 = document.createElement("td"); c2.textContent = dist;
+    const c3 = document.createElement("td"); c3.textContent = split;
+    const c4 = document.createElement("td"); c4.textContent = cum;
+    const c5 = document.createElement("td"); c5.textContent = pace;
+    tr.appendChild(c1); tr.appendChild(c2); tr.appendChild(c3); tr.appendChild(c4); tr.appendChild(c5);
+    tbody.appendChild(tr);
+  });
+
+  lastResults = {
+    presetName: presetSelect.value,
+    laps: laps,
+    totalDistance,
+    rows
+  };
+
+
+  // Load targets into the stopwatch (so Lap button matches these calculated splits)
+  swLoadTargetsFromLastResults(splitSecs);
+
+  // Show stopwatch once splits exist
+  if (stopwatchFieldset) stopwatchFieldset.classList.remove("hidden");
+
+  copyBtn.disabled = false;
+  const copyFormat = document.getElementById("copyFormat");
+  if (copyFormat) copyFormat.disabled = false;
+  copyStatus.classList.add("hidden");
+});
+
+
+copyBtn.addEventListener("click", async () => {
+  if (!lastResults) return;
+
+  const fmtSel = document.getElementById("copyFormat");
+  const fmt = fmtSel ? fmtSel.value : "tsv";
+  const raceName = getRaceNameText();
+  const detailLines = [];
+  if (raceName) detailLines.push(`Race: ${raceName}`);
+
+  try {
+    if (fmt === "image") {
+      const method = await copyTableAsImage(document.getElementById("resultTable"), "Target splits", detailLines);
+        if (!method) throw new Error("image_export_failed");
+        const st = document.getElementById("copyStatus");
+        if (st) {
+          st.textContent = (method === "clipboard") ? "Image copied" : (method === "share") ? "Share opened" : "Opened image tab";
+        }
+} else {
+      // For TSV/table copy: user requested NO meta header rows (remove "Race" and "Lap structure")
+      // so we copy only the column headers + data rows.
+      let text = buildSplitsTableTSV(lastResults);
+
+      // Fix: prevent URL-encoded looking output (e.g. %20) when pasting into phone SMS apps
+      text = normaliseForClipboard(maybeDecodeUrlEncoded(text));
+
+      await copyToClipboard(text);
+    }
+    copyStatus.classList.remove("hidden");
+    setTimeout(()=>copyStatus.classList.add("hidden"),1500);
+  } catch (e) {
+    alert(fmt === "image"
+      ? "Copy image failed. If your browser does not support image-to-clipboard, an image tab will open instead."
+      : "Copy failed");
+  }
+});
+
+
+
+
+document.getElementById("addPreset").addEventListener("click", () => {
+  const name = document.getElementById("customName").value.trim();
+  const lapInput = document.getElementById("customLaps").value;
+
+  if (!name) return alert("Enter a preset name.");
+
+  const parsed = parseLapStructureInput(lapInput);
+  if (!parsed.ok) {
+    return alert(parsed.error);
+  }
+  const laps = parsed.laps;
+
+  // Prevent overwriting built-in presets
+  if (basePresets[name] && !customPresetNames.has(name)) {
+    return alert("That name matches a standard preset. Please choose a different name.");
+  }
+
+  presets[name] = laps;
+  customPresetNames.add(name);
+
+  populatePresets();
+  presetSelect.value = name;
+  updatePresetDescription();
+
+  document.getElementById("customName").value = "";
+  document.getElementById("customLaps").value = "";
+
+  populateDeletePresets();
+
+  // Collapse the custom preset section after saving
+  customPresetBlock.classList.add("hidden");
+  togglePresets.textContent = "▶ Show create / manage custom presets";
+});
+deletePresetBtn.addEventListener("click", () => {
+  const name = deletePresetSelect.value;
+
+  if (!name || !customPresetNames.has(name)) return;
+
+  const ok = confirm(`Delete custom preset "${name}"?`);
+  if (!ok) return;
+
+  delete presets[name];
+  customPresetNames.delete(name);
+
+  const wasSelected = presetSelect.value === name;
+
+  populatePresets();
+
+  if (wasSelected) {
+    const first = presetSelect.options[0]?.value;
+    if (first) presetSelect.value = first;
+  }
+
+  updatePresetDescription();
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  populatePresets();
+  updatePresetDescription();
+});
+
+
+
+
+
+/* =========================
+   Race Tracking Stopwatch
+   ========================= */
+
+const swTotal = document.getElementById("swTotal");
+const swLap = document.getElementById("swLap");
+const swNextTarget = document.getElementById("swNextTarget");
+const swNextMeta = document.getElementById("swNextMeta");
+const swLastCumTarget = document.getElementById("swLastCumTarget");
+const swLastCumDelta = document.getElementById("swLastCumDelta");
+const swLastCumPill = document.getElementById("swLastCumPill");
+const swCurrLapTarget = document.getElementById("swCurrLapTarget");
+
+const swStartBtn = document.getElementById("swStartBtn");
+const swLapBtn = document.getElementById("swLapBtn");
+const swResetBtn = document.getElementById("swResetBtn");
+
+
+const swCopyBtn = document.getElementById("swCopyBtn");
+const swStartStamp = document.getElementById("swStartStamp");
+const swTable = document.getElementById("swTable");
+const swMobileLog = document.getElementById("swMobileLog");
+const swTbody = swTable.querySelector("tbody");
+
+let swRunning = false;
+
+let swCompleted = false;
+let swStartMs = 0;
+let swElapsedSec = 0;        // total elapsed seconds
+let swLapStartSec = 0;       // elapsed seconds at lap start
+let swTimerId = null;
+let swRafId = null;
+
+
+let swStartDate = null;       // wall-clock start date/time
+let swLapIndex = 0;
+  updateNextLapCumulativeTarget();          // next lap to record (0-based)
+let swActualSplits = [];
+let swActualCums = [];
+
+const SW_TOLERANCE_SEC = 0.2; // within this is "on target"
+
+function formatTimeMs(seconds) {
+  // mm:ss.d (1 decimal)
+  const s = Math.max(0, seconds);
+  const m = Math.floor(s / 60);
+  const rem = s - m * 60;
+  const ss = Math.floor(rem).toString().padStart(2, "0");
+  const d = Math.floor((rem - Math.floor(rem)) * 10);
+  return `${m}:${ss}.${d}`;
+}
+
+function formatDelta(seconds) {
+  const sign = seconds > 0 ? "+" : seconds < 0 ? "−" : "";
+  const abs = Math.abs(seconds);
+  // Show to 0.1s
+  const val = (Math.round(abs * 10) / 10).toFixed(1);
+  return `${sign}${val}s`;
+}
+
+function setPill(pillEl, state, text) {
+  pillEl.classList.remove("sw-good", "sw-bad", "sw-neutral");
+  pillEl.classList.add(state === "good" ? "sw-good" : state === "bad" ? "sw-bad" : "sw-neutral");
+  pillEl.textContent = text;
+}
+
+function classifyDelta(deltaSec) {
+  if (Math.abs(deltaSec) <= SW_TOLERANCE_SEC) return { state: "good", label: "On target" };
+  if (deltaSec <= 0) return { state: "good", label: "Ahead" };
+  return { state: "bad", label: "Behind" };
+}
+
+function ensureTargetsLoaded() {
+  return lastResults && Array.isArray(lastResults.expectedSplitSecs) && lastResults.expectedSplitSecs.length > 0;
+}
+
+function swUpdateNextTarget() {
+  // Updates "Current lap target" and "End of lap cumulative target" for the next lap to be completed.
+  if (!ensureTargetsLoaded()) {
+    if (swCurrLapTarget) swCurrLapTarget.textContent = "—";
+    if (swLastCumTarget) swLastCumTarget.textContent = "—";
+    return;
+  }
+
+  const laps = (lastResults && Array.isArray(lastResults.laps)) ? lastResults.laps : [];
+  const splitArr = (lastResults && Array.isArray(lastResults.expectedSplitSecs)) ? lastResults.expectedSplitSecs : [];
+  const cumArr = (lastResults && Array.isArray(lastResults.expectedCumSecs)) ? lastResults.expectedCumSecs : [];
+
+  // swLapIndex is the lap currently being run (0-based). This is the "next lap to be completed".
+  const i = Math.max(0, swLapIndex);
+
+  // Current lap target (split)
+  if (swCurrLapTarget) {
+    swCurrLapTarget.textContent = (i < splitArr.length) ? formatTime(splitArr[i]) : "—";
+  }
+
+  // End of lap cumulative target (cumulative at end of this lap)
+  if (swLastCumTarget) {
+    swLastCumTarget.textContent = (i < cumArr.length) ? formatTime(cumArr[i]) : (cumArr.length ? formatTime(cumArr[cumArr.length - 1]) : "—");
+  }
+
+  // Keep the dedicated helper in sync too (safe no-op if duplicated)
+  if (typeof updateNextLapCumulativeTarget === "function") {
+    updateNextLapCumulativeTarget();
+  }
+}
+
+
+
+
+function swUpdateUI(nowSec) {
+  // Total
+  swTotal.textContent = formatTimeMs(nowSec);
+
+  // Current lap
+  const lapSec = nowSec - swLapStartSec;
+  swLap.textContent = formatTimeMs(lapSec);
+
+  // Targets (no real-time deltas; show target for current lap only)
+  if (!ensureTargetsLoaded()) return;
+  if (swCurrLapTarget) {
+    const i = swLapIndex;
+    const arr = lastResults.expectedSplitSecs || [];
+    swCurrLapTarget.textContent = (i >= 0 && i < arr.length) ? formatTime(arr[i]) : "—";
+  }
+}
+
+function swTick() {
+  if (!swRunning) return;
+  swElapsedSec = (performance.now() - swStartMs) / 1000;
+  swUpdateUI(swElapsedSec);
+  swRafId = requestAnimationFrame(swTick);
+}
+
+
+// UPDATE END-OF-LAP CUMULATIVE TARGET
+function updateNextLapCumulativeTarget() {
+  // "End of lap cumulative target" should show the target cumulative time
+  // for the NEXT lap to be completed (i.e., the lap currently being run).
+  if (!swLastCumTarget) return;
+  if (!ensureTargetsLoaded() || !Array.isArray(lastResults.expectedCumSecs)) {
+    swLastCumTarget.textContent = "—";
+    return;
+  }
+  const nextIdx = swLapIndex; // lap currently being run (0-based)
+  if (nextIdx >= 0 && nextIdx < lastResults.expectedCumSecs.length) {
+    swLastCumTarget.textContent = formatTime(lastResults.expectedCumSecs[nextIdx]);
+  } else if (lastResults.expectedCumSecs.length) {
+    // If past end, show final target cumulative
+    swLastCumTarget.textContent = formatTime(lastResults.expectedCumSecs[lastResults.expectedCumSecs.length - 1]);
+  } else {
+    swLastCumTarget.textContent = "—";
+  }
+}
+function swStart() {
+  // Set wall-clock start time (persist across pauses)
+  if (!swStartDate) {
+    swStartDate = new Date();
+    if (swStartStamp) swStartStamp.textContent = swStartDate.toLocaleString();
+  }
+  if (!ensureTargetsLoaded()) {
+    alert("Please calculate splits first so the stopwatch has target splits to compare against.");
+    return;
+  }
+  if (swRunning) return;
+
+  swRunning = true;
+  swStartMs = performance.now() - swElapsedSec * 1000;
+  if (swTimerId) { clearInterval(swTimerId); swTimerId = null; }
+  if (swRafId) { cancelAnimationFrame(swRafId); swRafId = null; }
+  swRafId = requestAnimationFrame(swTick);
+
+  swStartBtn.textContent = "Pause";
+  swLapBtn.disabled = false;
+  swResetBtn.disabled = false;
+
+  swUpdateNextTarget();
+}
+
+function swPause() {
+  if (!swRunning) return;
+  swRunning = false;
+  if (swTimerId) { clearInterval(swTimerId); swTimerId = null; }
+  if (swRafId) { cancelAnimationFrame(swRafId); swRafId = null; }
+
+  swStartBtn.textContent = "Start";
+
+  // Start button is always clickable; if targets are missing, we will prompt on Start.
+  swStartBtn.disabled = swCompleted ? true : false;
+  // Keep lap enabled so user can still record a lap after pausing (optional)
+  swUpdateUI(swElapsedSec);
+}
+
+function swReset() {
+  swCompleted = false;
+if (swStartBtn) {
+        swStartBtn.disabled = swCompleted ? true : false;
+        swStartBtn.classList.remove('disabled');
+    }
+
+  swStartDate = null;
+  if (swStartStamp) swStartStamp.textContent = "—";
+  swRunning = false;
+  if (swTimerId) { clearInterval(swTimerId); swTimerId = null; }
+  if (swRafId) { cancelAnimationFrame(swRafId); swRafId = null; }
+
+  swElapsedSec = 0;
+  swLapStartSec = 0;
+
+  swLapIndex = 0;
+  updateNextLapCumulativeTarget();
+  swActualSplits = [];
+  swActualCums = [];
+
+  swStartBtn.textContent = "Start";
+  swLapBtn.disabled = true;
+  swResetBtn.disabled = true;
+
+  swTbody.innerHTML = "";
+  swTable.classList.add("hidden");
+  if (swMobileLog) { swMobileLog.innerHTML = ""; swMobileLog.classList.add("hidden"); }
+
+  if (swCopyBtn) swCopyBtn.disabled = true;
+  const swCopyFormat = document.getElementById("swCopyFormat");
+  if (swCopyFormat) swCopyFormat.disabled = true;
+  if (swLastCumTarget) swLastCumTarget.textContent = "—";
+  if (swLastCumDelta) swLastCumDelta.textContent = "—";
+  if (swLastCumPill) setPill(swLastCumPill, "neutral", "Ready");
+  if (swCurrLapTarget) swCurrLapTarget.textContent = "—";
+  swUpdateUI(0);
+  swUpdateNextTarget();
+}
+
+function swRecordLap() {
+  if (!ensureTargetsLoaded()) return;
+
+  const laps = lastResults.laps || [];
+  if (swLapIndex >= laps.length) return;
+
+  const nowSec = swElapsedSec;
+  const lapSec = nowSec - swLapStartSec;
+  const cumSec = nowSec;
+
+  swLapStartSec = nowSec;
+
+  swActualSplits.push(lapSec);
+  swActualCums.push(cumSec);
+
+  const i = swLapIndex;
+  const tgtLap = lastResults.expectedSplitSecs[i];
+  const tgtCum = lastResults.expectedCumSecs[i];
+
+  const dLap = lapSec - tgtLap;
+  const dCum = cumSec - tgtCum;
+  // Update "last completed lap" target & cumulative vs target display
+  if (swLastCumDelta) swLastCumDelta.textContent = formatDelta(dCum);
+  if (swLastCumPill) {
+    const lastLapIdx = lastResults.expectedCumSecs.length - 1;
+    if (i === lastLapIdx) {
+      // Last lap completed: show Finished and colour by cumulative result
+      setPill(swLastCumPill, (dCum <= 0 ? "good" : "bad"), "Finished");
+    } else {
+      // Not last lap yet: keep showing ahead/behind/on target for the last completed lap cumulative
+      const eps = 0.01; // 10ms tolerance
+      if (dCum < -eps) setPill(swLastCumPill, "good", "Ahead");
+      else if (dCum > eps) setPill(swLastCumPill, "bad", "Behind");
+      else setPill(swLastCumPill, "neutral", "On target");
+    }
+  }
+
+  const tr = document.createElement("tr");
+  const cells = [
+    { label: "Lap", text: String(i + 1) },
+    { label: "Target split", text: formatTime(tgtLap) },
+    { label: "Actual split", text: formatTimeMs(lapSec) },
+    { label: "Δ split", text: formatDelta(dLap), cls: (dLap <= SW_TOLERANCE_SEC ? "good" : "bad") },
+    { label: "Target cumul", text: formatTime(tgtCum) },
+    { label: "Actual cumul", text: formatTimeMs(cumSec) },
+    { label: "Δ cumul", text: formatDelta(dCum), cls: (dCum <= SW_TOLERANCE_SEC ? "good" : "bad") },
+  ];
+
+  for (const c of cells) {
+    const td = document.createElement("td");
+    td.setAttribute("data-label", c.label);
+    td.textContent = c.text;
+    if (c.cls) td.classList.add(c.cls);
+    tr.appendChild(td);
+  }
+
+  swTbody.appendChild(tr);
+  swTable.classList.remove("hidden");
+
+  // Mobile portrait: also render Lap Log as stacked cards
+  if (swMobileLog) {
+    const card = document.createElement("div");
+    card.className = "sw-card";
+
+    const h4 = document.createElement("h4");
+    h4.textContent = `Lap ${i + 1}`;
+    card.appendChild(h4);
+
+    const rows = [
+      { label: "Target split", value: formatTime(tgtLap) },
+      { label: "Actual split", value: formatTimeMs(lapSec) },
+      { label: "Δ split", value: formatDelta(dLap), cls: (dLap <= SW_TOLERANCE_SEC ? "good" : "bad") },
+      { label: "Target cumul", value: formatTime(tgtCum) },
+      { label: "Actual cumul", value: formatTimeMs(cumSec) },
+      { label: "Δ cumul", value: formatDelta(dCum), cls: (dCum <= SW_TOLERANCE_SEC ? "good" : "bad") },
+    ];
+
+    for (const r of rows) {
+      const row = document.createElement("div");
+      row.className = "sw-row";
+
+      const lab = document.createElement("div");
+      lab.className = "sw-label";
+      lab.textContent = r.label;
+
+      const val = document.createElement("div");
+      val.className = "sw-val";
+      val.textContent = r.value;
+      if (r.cls) val.classList.add(r.cls);
+
+      row.appendChild(lab);
+      row.appendChild(val);
+      card.appendChild(row);
+    }
+
+    swMobileLog.appendChild(card);
+    swMobileLog.classList.remove("hidden");
+  }
+
+  if (swCopyBtn) swCopyBtn.disabled = false;
+  const swCopyFormat = document.getElementById("swCopyFormat");
+  if (swCopyFormat) swCopyFormat.disabled = false;
+  swLapIndex += 1;
+
+  if (swLapIndex >= laps.length) {
+    // Finished: pause and disable lap, and disable Start until Reset
+    swLapBtn.disabled = true;
+    swPause();
+    swCompleted = true;
+    if (swStartBtn) {
+      swStartBtn.textContent = "Start";
+      swStartBtn.disabled = true;
+      swStartBtn.classList.add("disabled");
+    }
+  }
+
+  swUpdateNextTarget();
+  swUpdateUI(swElapsedSec);
+}
+
+
+function swCopyLapLogTSV() {
+  if (!swTbody || swTbody.children.length === 0) return false;
+
+  const raceName = getRaceNameText();
+  const startedTxt = (swStartDate instanceof Date) ? swStartDate.toLocaleString() : (swStartStamp ? swStartStamp.textContent.trim() : "");
+  const metaLines = [];
+  const lapStruct = getLapStructureHeaderText();
+  if (raceName) metaLines.push(`Race	${raceName}`);
+  if (lapStruct) metaLines.push(`Lap structure	${lapStruct}`);
+  if (startedTxt) metaLines.push(`Started	${startedTxt}`);
+
+  const headers = ["Lap","Target split","Actual split","Δ split","Target cumul","Actual cumul","Δ cumul"];
+  const lines = [];
+  if (metaLines.length) lines.push(...metaLines, "");
+  lines.push(headers.join("\t"));
+
+  for (const row of swTbody.querySelectorAll("tr")) {
+    const cells = Array.from(row.querySelectorAll("td")).map(td => (td.textContent || "").replace(/\s+/g, " ").trim());
+    lines.push(cells.join("\t"));
+  }
+
+  const tsv = lines.join("\n");
+
+  const doFallbackCopy = () => {
+    const ta = document.createElement("textarea");
+    ta.value = tsv;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch(e) {}
+    document.body.removeChild(ta);
+    return true;
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(tsv).then(() => true, () => doFallbackCopy());
+  }
+  return doFallbackCopy();
+}
+
+
+if (swCopyBtn) {
+  const swCopyStatus = document.getElementById("swCopyStatus");
+  const swCopyFormat = document.getElementById("swCopyFormat");
+
+  swCopyBtn.addEventListener("click", async () => {
+    if (!swTbody || swTbody.children.length === 0) return;
+
+    const fmt = swCopyFormat ? swCopyFormat.value : "tsv";
+    const raceName = getRaceNameText();
+    const startedTxt = (swStartDate instanceof Date) ? swStartDate.toLocaleString() : (swStartStamp ? swStartStamp.textContent.trim() : "");
+    const detailLines = [];
+    const lapStruct = getLapStructureHeaderText();
+    if (raceName) detailLines.push(`Race: ${raceName}`);
+    if (lapStruct) detailLines.push(`Lap structure: ${lapStruct}`);
+    if (startedTxt) detailLines.push(`Started: ${startedTxt}`);
+
+    try {
+      if (fmt === "image") {
+        const method = await copyTableAsImage(document.getElementById("swTable"), "Lap log", detailLines);
+        if (!method) throw new Error("image_export_failed");
+        const st = document.getElementById("swCopyStatus");
+        if (st) {
+          st.textContent = (method === "clipboard") ? "Image copied" : (method === "share") ? "Share opened" : "Opened image tab";
+        }
+} else {
+        const ok = await swCopyLapLogTSV();
+        if (!ok) return;
+      }
+      swCopyStatus.classList.remove("hidden");
+      setTimeout(()=>swCopyStatus.classList.add("hidden"),1500);
+    } catch (e) {
+      alert(fmt === "image"
+        ? "Copy image failed. If your browser does not support image-to-clipboard, an image tab will open instead."
+        : "Copy failed");
+    }
+  });
+}
+
+
+
+swStartBtn.addEventListener("click", () => {
+  if (!ensureTargetsLoaded()) {
+    alert("Calculate splits first so the stopwatch can match your target laps.");
+    return;
+  }
+  if (swRunning) swPause();
+  else swStart();
+});
+
+swLapBtn.addEventListener("click", () => {
+  if (!swRunning) {
+    // Allow recording while paused, but keep UI consistent
+    swRecordLap();
+    return;
+  }
+  swRecordLap();
+});
+
+swResetBtn.addEventListener("click", swReset);
+
+/* Hook stopwatch to the split calculator so targets always match the latest calculation */
+function swLoadTargetsFromLastResults(splitSecs) {
+  if (!lastResults) return;
+
+  // Save targets
+  lastResults.expectedSplitSecs = splitSecs.slice();
+
+  // Build cumulative targets
+  const cum = [];
+  let c = 0;
+  for (const s of splitSecs) { c += s; cum.push(c); }
+  lastResults.expectedCumSecs = cum;
+
+  // Enable controls and reset stopwatch state to match new plan
+  swStartBtn.disabled = swCompleted ? true : false;
+  swResetBtn.disabled = false;
+  swLapBtn.disabled = true;
+
+  swReset();
+  swUpdateNextTarget();
+}
+
+</script>
+
+</body>
+</html>
+
+<!-- cumulative traffic light logic injected -->
