@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Race Plan & Track</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#ffffff;
+      --muted:rgba(15,23,42,.72);
+      --muted2:rgba(15,23,42,.55);
+      --line:rgba(15,23,42,.12);
+      --shadow:0 10px 35px rgba(0,0,0,.12);
+      --radius:18px;
+      --pad:14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:linear-gradient(180deg,#0b1220 0%, #0b1220 40%, #08101e 100%);
+      color:#0f172a;
+    }
+    .wrap{max-width:860px;margin:0 auto;padding:16px 14px 42px;}
+    .brand{color:#fff;display:flex;align-items:flex-end;gap:10px;margin:8px 0 12px;}
+    .brand h1{margin:0;font-size:22px;letter-spacing:.2px}
+    .brand .sub{opacity:.75;font-size:12px}
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:var(--pad);
+      margin:12px 0;
+    }
+    .card h2{margin:0 0 10px;font-size:16px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .row.nowrap{flex-wrap:nowrap}
+    .grow{flex:1}
+    label{font-size:12px;color:var(--muted)}
+    select,input,button,textarea{font:inherit}
+    select,input,textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      outline:none;
+      background:#fff;
+    }
+    select:focus,input:focus,textarea:focus{border-color:rgba(37,99,235,.45); box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+    .field{min-width:150px}
+    .field.sm{min-width:110px}
+    .field.xs{min-width:90px}
+    .muted{color:var(--muted);font-size:12px}
+    .muted2{color:var(--muted2);font-size:12px}
+    .btn{border:0;border-radius:14px;padding:10px 12px;cursor:pointer;font-weight:800white-space:nowrap;}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn.primary{background:#0f172a;color:#fff}
+    .btn.secondary{background:#eef2ff;color:#0f172a}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:#0f172a}
+    .btn.small{padding:8px 10px;border-radius:12px;font-weight:800}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid var(--line);
+      font-size:12px;font-weight:900;
+      background:#fff;
+      white-space:nowrap;
+    }
+    .pill.ahead{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.25)}
+    .pill.on{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25)}
+    .pill.behind{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.25)}
+    .pill.complete{background:rgba(148,163,184,.18);border-color:rgba(148,163,184,.35)}
+    .hr{height:1px;background:var(--line);margin:10px 0}
+    .toggle{cursor:pointer;text-decoration:underline}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:520px){.two{grid-template-columns:1fr}}
+
+    .rt-sticky{
+      position:sticky; top:0; z-index:50;
+      background:rgba(255,255,255,.96);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.10);
+      padding:10px 12px 12px;
+      border-radius:18px;
+      margin:-6px -6px 10px;
+      box-shadow:0 8px 24px rgba(0,0,0,.10);
+    }
+    .clock{
+      font-variant-numeric:tabular-nums;
+      font-family:var(--mono);
+      font-size:34px;
+      font-weight:900;
+      letter-spacing:.3px;
+      margin:0;
+    }
+    .clockSub{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:10px;align-items:center}
+    @media (max-width:520px){
+      .clock{font-size:38px}
+      .actions{flex-direction:column;align-items:stretch;gap:8px}
+      .actions .btn{width:100%}
+    }
+
+    .athGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:520px){.athGrid{grid-template-columns:1fr}}
+
+    .ath-card{
+      border:2px solid rgba(148,163,184,.35);
+      border-radius:18px;
+      padding:10px;
+      background:#fff;
+      position:relative;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:manipulation;
+    }
+    .ath-card.capture{background:rgba(37,99,235,.08);}
+    .ath-top{display:flex;align-items:flex-start;gap:10px}
+    .ath-name{font-size:18px;font-weight:950;margin:0}
+
+    .ath-nameRow{display:flex;align-items:baseline;gap:10px}
+    .ath-inlinehint{margin-left:auto;font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap}
+
+    .ath-subhint{font-size:12px;color:var(--muted);margin-top:2px}
+    .ath-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+    .ath-distance{font-size:14px;font-weight:900;color:#0f172a;margin:0}
+    .ath-mini-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .ath-mini-table th{
+      font-size:12px;
+      color:rgba(15,23,42,.70);
+      padding:6px 6px;
+      text-align:left;
+      border-bottom:1px solid rgba(15,23,42,.12);
+    }
+    .ath-mini-table td{
+      padding:6px 6px;
+      border-bottom:1px solid rgba(15,23,42,.10);
+    }
+    .ath-mini-table td.big{font-size:22px;font-weight:950}
+    .ath-mini-table td.rowhdr{font-weight:950;width:62px}
+
+    .backdrop{
+      position:fixed; inset:0;
+      background:rgba(2,6,23,.55);
+      display:none; align-items:stretch; justify-content:center;
+      z-index:100;
+    }
+    .backdrop.show{display:flex}
+    .panel{
+      background:#fff;
+      width:min(820px, 94vw);
+      margin:auto;
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      max-height:min(92vh, 920px);
+      overflow:auto;
+      padding:14px;
+    }
+    .panel h3{margin:0 0 8px}
+    .panel .head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .panel .head .x{margin-left:auto}
+    .tblwrap{overflow:auto;border:1px solid rgba(15,23,42,.10);border-radius:14px;margin-top:10px}
+    .tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .tbl th,.tbl td{border-bottom:1px solid rgba(15,23,42,.12);padding:8px 8px;text-align:left}
+    .tbl th{font-size:12px;color:var(--muted);font-weight:900}
+    .tbl td{font-size:13px}
+    .tbl thead th{
+      position:sticky;
+      top:0;
+      background:#fff;
+      z-index:3;
+    }
+    .tbl thead th.stickyL{z-index:6;}
+
+    .tbl .stickyL{position:sticky;left:0;background:#fff}
+    .smallnote{font-size:12px;color:var(--muted)}
+    .err{color:#b91c1c;font-size:12px;font-weight:900}
+  
+    .actions .btn{white-space:nowrap}
+    .ath-head{display:flex;align-items:baseline;gap:10px}
+    .ath-head .ath-subhint{margin-left:auto;text-align:right;white-space:nowrap}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <h1>Race Plan & Track</h1>
+      
+    </div>
+
+    <section class="card" id="setupCard">
+      <div class="row nowrap" style="align-items:center;">
+        <h2 style="margin:0">Race Set-up</h2>
+        <div class="grow"></div>
+        <button class="btn small ghost" id="newRaceBtn" title="Clear all data and set defaults">Reset (New Race)</button>
+      </div>
+
+      <div class="two" style="margin-top:10px;">
+        <div class="field sm">
+          <label>Number of Athletes</label>
+          <select id="athleteCount"></select>
+        </div>
+        <div class="field">
+          <label>Race Preset</label>
+          <select id="presetSelect"></select>
+          <div class="muted2" id="presetDesc" style="margin-top:6px;"></div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div class="muted" style="font-weight:900;">Create Custom Presets</div>
+        <div class="grow"></div>
+        <div class="muted2"><span class="toggle" id="toggleCustom">Show</span></div>
+      </div>
+
+      <div id="customBlock" style="display:none;margin-top:10px;">
+        <div class="two">
+          <div>
+            <label>Custom preset name</label>
+            <input id="customName" placeholder="e.g., My 1500 build"/>
+          </div>
+          <div>
+            <label>Lap structure</label>
+            <input id="customLaps" placeholder="e.g., 300 + 3x400"/>
+            <div class="muted2" style="margin-top:6px;">Accepted separators: comma or +. Multipliers: 3x400 or 3*400.</div>
+            <div class="err" id="customErr" style="display:none;margin-top:6px;"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn secondary" id="saveCustomBtn">Save preset</button>
+          <div class="grow"></div>
+          <div class="field sm">
+            <label>Delete custom preset</label>
+            <select id="deleteCustomSelect"></select>
+          </div>
+          <button class="btn ghost" id="deleteCustomBtn">Delete</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="trackingCard">
+      <div class="rt-sticky">
+        <div class="row nowrap" style="align-items:flex-end;">
+          <div>
+            <div class="muted">Stopwatch</div>
+            <div class="clock" id="clockText">0:00.0</div>
+            <div class="clockSub" id="clockMeta">Distance: —</div>
+          </div>
+          <div class="grow"></div>
+          <div class="actions">
+            <button class="btn primary" id="startBtn" disabled>Start</button>
+            <button class="btn secondary" id="resetBtn" disabled>Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="muted" id="trackingHint">Set targets for each athlete to enable Start.</div>
+      <div class="athGrid" id="athleteGrid" style="margin-top:10px;"></div>
+    </section>
+
+    <section class="card" id="resultsCard">
+      <div class="row nowrap">
+        <h2 style="margin:0">Results</h2>
+        <div class="grow"></div>
+        <button class="btn small ghost" id="shareResultsCsvBtn">Share CSV</button>
+        <button class="btn small ghost" id="shareResultsImgBtn">Share Image</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div id="resultsHeader" class="muted2"></div>
+      </div>
+      <div id="resultsContainer" style="margin-top:10px;"></div>
+    </section>
+  </div>
+
+  <div class="backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true">
+      <div class="head">
+        <h3 id="modalTitle">Calculate Splits</h3>
+        <button class="btn small ghost x" id="closeModalBtn">Close</button>
+      </div>
+      <div class="muted2" id="modalSub"></div>
+      <div class="hr"></div>
+
+      <div class="two">
+        <div>
+          <label>Athlete name</label>
+          <input id="modalName" maxlength="20" placeholder="Athlete A"/>
+          <div class="muted2">Max 20 characters. Letters/numbers/spaces only.</div>
+          <div class="err" id="nameErr" style="display:none;margin-top:6px;"></div>
+        </div>
+        <div>
+          <label>Goal time (mm:ss or h:mm:ss)</label>
+          <input id="goalTime" placeholder="e.g., 5:00"/>
+          <div class="muted2">Used to generate targets over the selected lap structure.</div>
+          <div class="err" id="goalErr" style="display:none;margin-top:6px;"></div>
+        </div>
+      </div>
+
+      <div class="two" style="margin-top:10px;">
+        <div>
+          <label>Split type</label>
+          <select id="splitType">
+            <option value="even">Even</option>
+            <option value="negative">Negative</option>
+            <option value="positive">Positive</option>
+          </select>
+        </div>
+        <div id="variationWrap" style="display:none;">
+          <label>Variation (%)</label>
+          <input id="variationPct" type="number" min="0" max="30" step="0.5" value="2.0"/>
+          <div class="muted2">Applies a gradual shift from early to late laps.</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn primary" id="calcBtn">Calculate / Apply</button>
+        <button class="btn secondary" id="applyAllBtn">Apply To All</button>
+        <div class="grow"></div>
+        <button class="btn ghost" id="shareSplitsCsvBtn">Share CSV</button>
+        <button class="btn ghost" id="shareSplitsImgBtn">Share Image</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="smallnote">Distance column is cumulative. Left column is sticky while scrolling.</div>
+      <div class="tblwrap" style="max-height:52vh;">
+        <table class="tbl" id="splitsTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  'use strict';
+  (function(){
+    function pad2(n){ n = Math.floor(Math.abs(n)); return (n<10?'0':'')+n; }
+    function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+    function nowMs(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+    function sum(arr){ var t=0; for(var i=0;i<arr.length;i++) t+=arr[i]; return t; }
+
+    function isoStamp(){
+      var d = new Date();
+      function p(x){ return (x<10?'0':'')+x; }
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + '_' + p(d.getHours()) + '-' + p(d.getMinutes()) + '-' + p(d.getSeconds());
+    }
+    function isoDate(){
+      var d = new Date();
+      function p(x){ return (x<10?'0':'')+x; }
+      return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+    }
+
+    function parseTimeToSeconds(s){
+      s = (s || '').trim();
+      if (!s) return null;
+      var parts = s.split(':');
+      if (parts.length < 2 || parts.length > 3) return null;
+      var h = 0, m = 0, sec = 0;
+      if (parts.length === 2){
+        m = parseInt(parts[0],10);
+        sec = parseFloat(parts[1]);
+      } else {
+        h = parseInt(parts[0],10);
+        m = parseInt(parts[1],10);
+        sec = parseFloat(parts[2]);
+      }
+      if (!isFinite(h) || !isFinite(m) || !isFinite(sec)) return null;
+      if (m<0 || sec<0) return null;
+      return h*3600 + m*60 + sec;
+    }
+
+    function formatTimeTenth(sec){
+      if (sec === null || sec === undefined || !isFinite(sec)) return '—';
+      var s = Math.max(0, sec);
+      var h = Math.floor(s/3600);
+      s -= h*3600;
+      var m = Math.floor(s/60);
+      s -= m*60;
+      var whole = Math.floor(s);
+      var tenth = Math.round((s - whole)*10);
+      if (tenth === 10){ tenth = 0; whole += 1; }
+      if (whole === 60){ whole = 0; m += 1; }
+      if (m === 60){ m = 0; h += 1; }
+      var out = '';
+      if (h>0) out += h + ':' + pad2(m) + ':' + pad2(whole);
+      else out += m + ':' + pad2(whole);
+      out += '.' + String(tenth);
+      return out;
+    }
+
+    function pacePerKmFromLap(lapSec, lapMeters){
+      if (!isFinite(lapSec) || !isFinite(lapMeters) || lapMeters<=0) return '—';
+      var paceSec = lapSec / (lapMeters/1000);
+      return formatTimeTenth(paceSec);
+    }
+
+    function formatCsvValue(v){
+      var s = (v===null || v===undefined) ? '' : String(v);
+      if (s.indexOf('"') !== -1) s = s.replace(/"/g,'""');
+      if (/[,"\r\n]/.test(s)) s = '"' + s + '"';
+      return s;
+    }
+
+    function downloadBlob(filename, blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 200);
+    }
+
+    function shareFileOrDownload(filename, blob, title){
+      var nav = navigator;
+      if (nav && nav.canShare && nav.share){
+        try{
+          var file = new File([blob], filename, {type: blob.type || 'application/octet-stream'});
+          if (nav.canShare({files:[file]})){
+            return nav.share({title: title || filename, files:[file]}).catch(function(){ downloadBlob(filename, blob); });
+          }
+        } catch(e){}
+      }
+      downloadBlob(filename, blob);
+      return Promise.resolve();
+    }
+
+    var BASE_PRESETS = [
+      { key:'400m', name:'400m', structure:'2 x 200m', laps:[200,200] },
+      { key:'800m', name:'800m', structure:'2 x 400m', laps:[400,400] },
+      { key:'1000m', name:'1000m', structure:'200m + 2 x 400m', laps:[200,400,400] },
+      { key:'1200m', name:'1200m', structure:'3 x 400m', laps:[400,400,400] },
+      { key:'1500m', name:'1500m', structure:'300m + 3 x 400m', laps:[300,400,400,400] },
+      { key:'1 Mile', name:'1 Mile', structure:'409m + 3 x 400m', laps:[409,400,400,400] },
+      { key:'2000m', name:'2000m', structure:'5 x 400m', laps:[400,400,400,400,400] },
+      { key:'3000m', name:'3000m', structure:'200m + 7 x 400m', laps:(function(){ var a=[200]; for(var i=0;i<7;i++) a.push(400); return a; })() },
+      { key:'2 Mile', name:'2 Mile', structure:'418m + 7 x 400m', laps:(function(){ var a=[418]; for(var i=0;i<7;i++) a.push(400); return a; })() },
+      { key:'4000m', name:'4000m', structure:'10 x 400m', laps:(function(){ var a=[]; for(var i=0;i<10;i++) a.push(400); return a; })() },
+      { key:'5000m', name:'5000m', structure:'200m + 12 x 400m', laps:(function(){ var a=[200]; for(var i=0;i<12;i++) a.push(400); return a; })() },
+      { key:'10000m', name:'10000m', structure:'25 x 400m', laps:(function(){ var a=[]; for(var i=0;i<25;i++) a.push(400); return a; })() }
+    ];
+
+    function loadCustomPresets(){
+      try{
+        var raw = localStorage.getItem('rpt_custom_presets_v4');
+        if (!raw) return [];
+        var parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(function(p){
+          return p && p.id && p.name && p.structure && Array.isArray(p.laps) && p.laps.length;
+        });
+      } catch(e){ return []; }
+    }
+    function saveCustomPresets(list){
+      try{ localStorage.setItem('rpt_custom_presets_v4', JSON.stringify(list)); } catch(e){}
+    }
+
+    function parseLapStructureStrict(input){
+      var s = (input||'').trim();
+      if (!s) return { ok:false, msg:'Invalid Lap Structure' };
+      if (/[\/()]/.test(s)) return { ok:false, msg:'Invalid Lap Structure' };
+      var rawTokens = s.split(/[,+]/);
+      var laps = [];
+      for (var i=0;i<rawTokens.length;i++){
+        var tok = rawTokens[i].trim();
+        if (!tok) continue;
+        var m = tok.match(/^(\d+)\s*([xX\*])\s*(\d+)$/);
+        if (m){
+          var k = parseInt(m[1],10);
+          var n = parseInt(m[3],10);
+          if (!(k>0 && n>0)) return {ok:false, msg:'Invalid Lap Structure'};
+          for (var r=0;r<k;r++) laps.push(n);
+        } else {
+          if (!/^\d+$/.test(tok)) return {ok:false, msg:'Invalid Lap Structure'};
+          var num = parseInt(tok,10);
+          if (!isFinite(num) || num<=0) return {ok:false, msg:'Invalid Lap Structure'};
+          laps.push(num);
+        }
+        if (laps.length>110) return {ok:false, msg:'Invalid Lap Structure'};
+      }
+      if (!laps.length) return { ok:false, msg:'Invalid Lap Structure' };
+      var structure = s.replace(/\s+/g,' ').replace(/\*/g,'x').replace(/X/g,'x');
+      return { ok:true, laps:laps, structure:structure };
+    }
+
+    var state = {
+      basePresets: BASE_PRESETS.slice(),
+      customPresets: loadCustomPresets(),
+      presets: [],
+      race: {
+        presetKey: BASE_PRESETS[0].key,
+        laps: BASE_PRESETS[0].laps.slice(),
+        structure: BASE_PRESETS[0].structure,
+        totalDistance: sum(BASE_PRESETS[0].laps),
+        running:false,
+        completed:false,
+        startWallClock:null,
+        startPerfMs:0,
+        pauseElapsedSec:0,
+        pendingFinishTimerId:0,
+        pendingFinishDeadlineMs:0
+      },
+      athletes: [],
+      modal: { open:false, athleteId:'A', originalName:'' },
+      ui: { customOpen:false }
+    };
+
+    function rebuildPresets(){
+      var merged = state.basePresets.slice();
+      for (var i=0;i<state.customPresets.length;i++){
+        var cp = state.customPresets[i];
+        merged.push({ key: cp.id, name: cp.name, structure: cp.structure, laps: cp.laps.slice(), custom:true });
+      }
+      state.presets = merged;
+    }
+    rebuildPresets();
+
+    function makeAthlete(id){
+      return {
+        id:id,
+        name:'Athlete ' + id,
+        hasTargets:false,
+        targets:{ lapTargetSec:[], cumTargetSec:[] },
+        laps:[],
+        completed:false,
+        lastCaptureUndoUntilMs:0,
+        lastCaptureKey:''
+      };
+    }
+    function ensureAthletes(n){
+      var letters = ['A','B','C','D','E','F'];
+      var list = [];
+      for (var i=0;i<n;i++){
+        var id = letters[i];
+        var existing = null;
+        for (var j=0;j<state.athletes.length;j++){
+          if (state.athletes[j].id === id) { existing = state.athletes[j]; break; }
+        }
+        list.push(existing || makeAthlete(id));
+      }
+      state.athletes = list;
+      for (var k=0;k<state.athletes.length;k++){
+        state.athletes[k].completed = (state.athletes[k].laps.length >= state.race.laps.length);
+      }
+    }
+
+    function el(id){ return document.getElementById(id); }
+    var dom = {
+      athleteCount: el('athleteCount'),
+      presetSelect: el('presetSelect'),
+      presetDesc: el('presetDesc'),
+      toggleCustom: el('toggleCustom'),
+      customBlock: el('customBlock'),
+      customName: el('customName'),
+      customLaps: el('customLaps'),
+      customErr: el('customErr'),
+      saveCustomBtn: el('saveCustomBtn'),
+      deleteCustomSelect: el('deleteCustomSelect'),
+      deleteCustomBtn: el('deleteCustomBtn'),
+      newRaceBtn: el('newRaceBtn'),
+      clockText: el('clockText'),
+      clockMeta: el('clockMeta'),
+      startBtn: el('startBtn'),
+      resetBtn: el('resetBtn'),
+      trackingHint: el('trackingHint'),
+      athleteGrid: el('athleteGrid'),
+      resultsHeader: el('resultsHeader'),
+      resultsContainer: el('resultsContainer'),
+      shareResultsCsvBtn: el('shareResultsCsvBtn'),
+      shareResultsImgBtn: el('shareResultsImgBtn'),
+      modalBackdrop: el('modalBackdrop'),
+      closeModalBtn: el('closeModalBtn'),
+      modalSub: el('modalSub'),
+      modalName: el('modalName'),
+      nameErr: el('nameErr'),
+      goalTime: el('goalTime'),
+      goalErr: el('goalErr'),
+      splitType: el('splitType'),
+      variationWrap: el('variationWrap'),
+      variationPct: el('variationPct'),
+      calcBtn: el('calcBtn'),
+      applyAllBtn: el('applyAllBtn'),
+      splitsTable: el('splitsTable'),
+      shareSplitsCsvBtn: el('shareSplitsCsvBtn'),
+      shareSplitsImgBtn: el('shareSplitsImgBtn')
+    };
+
+    function currentElapsedSec(){
+      if (!state.race.running) return state.race.pauseElapsedSec || 0;
+      return (nowMs() - state.race.startPerfMs)/1000;
+    }
+
+    function cancelPendingFinish(){
+      if (state.race.pendingFinishTimerId){
+        clearTimeout(state.race.pendingFinishTimerId);
+        state.race.pendingFinishTimerId = 0;
+      }
+      state.race.pendingFinishDeadlineMs = 0;
+    }
+
+    function stopRace(){
+      state.race.pauseElapsedSec = currentElapsedSec();
+      state.race.running = false;
+    }
+
+    function startRace(){
+      state.race.running = true;
+      state.race.completed = false;
+      state.race.startWallClock = new Date().toLocaleString();
+      state.race.startPerfMs = nowMs() - (state.race.pauseElapsedSec||0)*1000;
+      cancelPendingFinish();
+    }
+
+    function scheduleFinishIfAllComplete(){
+      cancelPendingFinish();
+      state.race.pendingFinishDeadlineMs = nowMs() + 5000;
+      state.race.pendingFinishTimerId = setTimeout(function(){
+        state.race.pendingFinishTimerId = 0;
+        state.race.pendingFinishDeadlineMs = 0;
+        var allComplete = state.athletes.length && state.athletes.every(function(a){ return a.completed; });
+        if (allComplete && state.race.running){
+          stopRace();
+          state.race.completed = true;
+          renderAll();
+        }
+      }, 5000);
+    }
+
+    function computeTargets(lapsM, goalSec, splitType, variationPct){
+      var totalM = sum(lapsM);
+      if (totalM <= 0) return null;
+      var lapTargets = [];
+      var cumTargets = [];
+      if (splitType === 'even'){
+        var pace = goalSec / totalM;
+        var cum = 0;
+        for (var i=0;i<lapsM.length;i++){
+          var lapSec = lapsM[i] * pace;
+          lapTargets.push(lapSec);
+          cum += lapSec;
+          cumTargets.push(cum);
+        }
+      } else {
+        var varPct = clamp(parseFloat(variationPct||0), 0, 30) / 100;
+        var n = lapsM.length;
+        var weights = [];
+        for (var j=0;j<n;j++){
+          var t = (n===1) ? 0 : (j/(n-1))*2 - 1;
+          var w = 1 + (splitType === 'negative' ? -t : t) * varPct;
+          weights.push(w);
+        }
+        var denom = 0;
+        for (var k=0;k<n;k++) denom += lapsM[k] * weights[k];
+        var scale = goalSec / denom;
+        var cum2 = 0;
+        for (var x=0;x<n;x++){
+          var lapSec2 = lapsM[x] * weights[x] * scale;
+          lapTargets.push(lapSec2);
+          cum2 += lapSec2;
+          cumTargets.push(cum2);
+        }
+      }
+      return { lapTargetSec: lapTargets, cumTargetSec: cumTargets };
+    }
+
+    function athleteNextLapIndex(a){ return a.laps.length; }
+    function validateName(name){
+      if (!name) return {ok:false, msg:'Name is required.'};
+      if (name.length > 20) return {ok:false, msg:'Max 20 characters.'};
+      if (!/^[A-Za-z0-9 ]+$/.test(name)) return {ok:false, msg:'Only letters, numbers, spaces.'};
+      return {ok:true};
+    }
+    function getAthlete(id){
+      for (var i=0;i<state.athletes.length;i++) if (state.athletes[i].id===id) return state.athletes[i];
+      return null;
+    }
+
+    function captureLapForAthlete(a){
+      if (!state.race.running) return;
+      if (a.completed) return;
+      var idx = athleteNextLapIndex(a);
+      if (!a.hasTargets) return;
+      if (idx >= state.race.laps.length) return;
+
+      var tNow = currentElapsedSec();
+      var prevCum = (idx===0) ? 0 : a.laps[idx-1].actualCumSec;
+      var actualLap = tNow - prevCum;
+      if (actualLap < 0) actualLap = 0;
+
+      var lapTarget = a.targets.lapTargetSec[idx];
+      var cumTarget = a.targets.cumTargetSec[idx];
+      var actualCum = tNow;
+      var deltaLap = actualLap - lapTarget;
+      var deltaCum = actualCum - cumTarget;
+
+      var distanceComplete = 0;
+      for (var i=0;i<=idx;i++) distanceComplete += state.race.laps[i];
+
+      a.laps.push({
+        lapIndex: idx,
+        distanceCompleteM: distanceComplete,
+        capturedAtRaceSec: tNow,
+        actualLapSec: actualLap,
+        actualCumSec: actualCum,
+        lapTargetSec: lapTarget,
+        cumTargetSec: cumTarget,
+        deltaLapSec: deltaLap,
+        deltaCumSec: deltaCum
+      });
+
+      a.lastCaptureUndoUntilMs = nowMs() + 5000;
+      a.lastCaptureKey = String(idx);
+      if (a.laps.length >= state.race.laps.length){ a.completed = true; }
+
+      if (state.athletes.length && state.athletes.every(function(x){ return x.completed; })){
+        scheduleFinishIfAllComplete();
+      }
+    }
+
+    function undoLastLapIfAllowed(a){
+      if (!a.laps.length) return false;
+      var idx = a.laps.length - 1;
+      var key = String(idx);
+      if (a.lastCaptureKey !== key) return false;
+      if (nowMs() > a.lastCaptureUndoUntilMs) return false;
+      a.laps.pop();
+      a.completed = (a.laps.length >= state.race.laps.length);
+      a.lastCaptureUndoUntilMs = 0;
+      a.lastCaptureKey = '';
+      cancelPendingFinish();
+      state.race.completed = false;
+      return true;
+    }
+
+    function statusForAthlete(a){
+      if (a.completed) return { cls:'complete', text:'Complete' };
+      if (!a.laps.length || !a.hasTargets) return { cls:'', text:'—' };
+      var last = a.laps[a.laps.length-1];
+      var d = last.deltaCumSec;
+      if (!isFinite(d)) return { cls:'', text:'—' };
+      if (d < -1) return { cls:'ahead', text:'Ahead ' + formatTimeTenth(Math.abs(d)) };
+      if (d > 1) return { cls:'behind', text:'Behind ' + formatTimeTenth(Math.abs(d)) };
+      return { cls:'on', text:'On Track ' + formatTimeTenth(Math.abs(d)) };
+    }
+
+    function canStart(){
+      if (!state.athletes.length) return false;
+      for (var i=0;i<state.athletes.length;i++) if (!state.athletes[i].hasTargets) return false;
+      return true;
+    }
+
+    function renderSetup(){
+      dom.athleteCount.disabled = state.race.running || state.race.completed;
+      dom.presetSelect.disabled = state.race.running || state.race.completed;
+      if (!dom.athleteCount.options.length){
+        for (var i=1;i<=6;i++){
+          var opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = String(i);
+          dom.athleteCount.appendChild(opt);
+        }
+      }
+      dom.athleteCount.value = String(state.athletes.length || 1);
+
+      dom.presetSelect.innerHTML = '';
+      for (var p=0;p<state.presets.length;p++){
+        var pr = state.presets[p];
+        var o = document.createElement('option');
+        o.value = pr.key;
+        o.textContent = pr.name;
+        if (pr.key === state.race.presetKey) o.selected = true;
+        dom.presetSelect.appendChild(o);
+      }
+
+      dom.presetDesc.textContent = 'Lap Structure: ' + state.race.structure + ' (Total ' + state.race.totalDistance + 'm)';
+
+      dom.customBlock.style.display = state.ui.customOpen ? 'block' : 'none';
+      dom.toggleCustom.textContent = state.ui.customOpen ? 'Hide' : 'Show';
+
+      dom.deleteCustomSelect.innerHTML = '';
+      var c0 = document.createElement('option'); c0.value=''; c0.textContent='—'; dom.deleteCustomSelect.appendChild(c0);
+      for (var c=0;c<state.customPresets.length;c++){
+        var cp = state.customPresets[c];
+        var oc = document.createElement('option');
+        oc.value = cp.id;
+        oc.textContent = cp.name + ' (' + sum(cp.laps) + 'm)';
+        dom.deleteCustomSelect.appendChild(oc);
+      }
+    }
+
+    function renderClock(){
+      dom.clockText.textContent = formatTimeTenth(currentElapsedSec());
+      dom.clockMeta.textContent = 'Distance: ' + state.race.totalDistance + 'm' + (state.race.startWallClock ? (' · Start: ' + state.race.startWallClock) : '');
+    }
+
+    function renderTrackingHeader(){
+      var running = state.race.running;
+      if (!running && !state.race.completed){
+        dom.startBtn.textContent = 'Start';
+        dom.startBtn.disabled = !canStart();
+      } else if (running){
+        dom.startBtn.textContent = 'Lap All';
+        dom.startBtn.disabled = false;
+      } else if (state.race.completed){
+        dom.startBtn.textContent = 'Complete';
+        dom.startBtn.disabled = true;
+      }
+      dom.resetBtn.disabled = !running && state.race.pauseElapsedSec === 0 && !state.athletes.some(function(a){ return a.laps.length>0; });
+      dom.trackingHint.textContent = running ? 'Tap each athlete to capture lap. Lap All captures for athletes still racing.' : 'Set targets for each athlete to enable Start.';
+    }
+
+    function renderAthleteGrid(){
+      dom.athleteGrid.innerHTML = '';
+      var running = state.race.running;
+      var colors = ['#2563eb','#7c3aed','#16a34a','#ea580c','#e11d48','#0f766e'];
+      for (var i=0;i<state.athletes.length;i++){
+        var a = state.athletes[i];
+        var card = document.createElement('div');
+        card.className = 'ath-card';
+        card.style.borderColor = colors[i % colors.length];
+        if (nowMs() <= a.lastCaptureUndoUntilMs) card.className += ' capture';
+
+        var top = document.createElement('div');
+        top.className = 'ath-top';
+        var left = document.createElement('div');
+        left.className = 'grow';
+
+        var nm = document.createElement('div');
+        nm.className = 'ath-name';
+        nm.textContent = a.name;
+
+        var hint = document.createElement('div');
+        hint.className = 'ath-subhint';
+        if (!a.hasTargets) hint.textContent = 'Tap to set target';
+        else if (!running) hint.textContent = 'Tap to adjust target';
+        else if (a.completed) hint.textContent = 'Complete';
+        else if (nowMs() <= a.lastCaptureUndoUntilMs) hint.textContent = 'Tap to undo';
+        else hint.textContent = 'Tap to lap';
+
+        var head = document.createElement('div');
+        head.className = 'ath-head';
+        head.appendChild(nm);
+        head.appendChild(hint);
+
+        var st = statusForAthlete(a);
+        var pill = document.createElement('span');
+        pill.className = 'pill ' + (st.cls || '');
+        pill.textContent = st.text;
+
+        var line = document.createElement('div');
+        line.className = 'ath-line';
+        var dist = document.createElement('div');
+        dist.className = 'ath-distance';
+        var distComplete = (a.laps.length ? a.laps[a.laps.length-1].distanceCompleteM : null);
+        dist.textContent = (distComplete===null || distComplete===undefined) ? '-' : String(distComplete) + 'm';
+        line.appendChild(dist);
+        line.appendChild(pill);
+
+        left.appendChild(head);
+        left.appendChild(line);
+
+        top.appendChild(left);
+        card.appendChild(top);
+
+        var idx = a.laps.length;
+        var last = a.laps.length ? a.laps[a.laps.length-1] : null;
+        var lapLastActual = last ? formatTimeTenth(last.actualLapSec) : '—';
+        var lapLastTarget = (a.hasTargets && last) ? formatTimeTenth(a.targets.lapTargetSec[last.lapIndex]) : '—';
+        var lapNextTarget = (a.hasTargets && idx < a.targets.lapTargetSec.length) ? formatTimeTenth(a.targets.lapTargetSec[idx]) : '—';
+        var totLastActual = last ? formatTimeTenth(last.actualCumSec) : '—';
+        var totLastTarget = (a.hasTargets && last) ? formatTimeTenth(a.targets.cumTargetSec[last.lapIndex]) : '—';
+        var totNextTarget = (a.hasTargets && idx < a.targets.cumTargetSec.length) ? formatTimeTenth(a.targets.cumTargetSec[idx]) : '—';
+
+        var tbl = document.createElement('table');
+        tbl.className = 'ath-mini-table';
+        tbl.innerHTML =
+          '<thead><tr><th></th><th>Last actual</th><th>Last target</th><th>Next target</th></tr></thead>' +
+          '<tbody>' +
+          '<tr><td class="rowhdr">Lap</td><td class="big">' + lapLastActual + '</td><td>' + lapLastTarget + '</td><td>' + lapNextTarget + '</td></tr>' +
+          '<tr><td class="rowhdr">Total</td><td class="big">' + totLastActual + '</td><td>' + totLastTarget + '</td><td>' + totNextTarget + '</td></tr>' +
+          '</tbody>';
+        card.appendChild(tbl);
+
+        (function(athId, node){
+          var downX=0, downY=0, moved=false, downTime=0, active=false, lastActivateMs=0;
+
+          function getPoint(e){
+            if (e && e.touches && e.touches[0]) return e.touches[0];
+            if (e && e.changedTouches && e.changedTouches[0]) return e.changedTouches[0];
+            return e || {clientX:0, clientY:0};
+          }
+          function onDown(e){
+            active = true;
+            moved = false;
+            downTime = nowMs();
+            var pt = getPoint(e);
+            downX = pt.clientX || 0;
+            downY = pt.clientY || 0;
+          }
+          function onMove(e){
+            if (!active) return;
+            var pt = getPoint(e);
+            var dx = Math.abs((pt.clientX||0) - downX);
+            var dy = Math.abs((pt.clientY||0) - downY);
+            if (dx>10 || dy>10) moved = true;
+          }
+          function activate(){
+            lastActivateMs = nowMs();
+            onAthleteCardClick(athId);
+          }
+          function onUp(e){
+            if (!active) return;
+            active = false;
+            if (moved) return;
+            if (nowMs()-downTime > 700) return;
+            activate();
+          }
+
+          // Prefer Pointer Events (works on iPhone/iPadOS, Android, desktop).
+          if (window.PointerEvent){
+            node.addEventListener('pointerdown', onDown, {passive:true});
+            node.addEventListener('pointermove', onMove, {passive:true});
+            node.addEventListener('pointerup', onUp, {passive:true});
+            node.addEventListener('pointercancel', function(){ active=false; }, {passive:true});
+          } else {
+            // Fallback for older browsers
+            node.addEventListener('touchstart', onDown, {passive:true});
+            node.addEventListener('touchmove', onMove, {passive:true});
+            node.addEventListener('touchend', onUp, {passive:true});
+            node.addEventListener('mousedown', onDown);
+            node.addEventListener('mousemove', onMove);
+            node.addEventListener('mouseup', onUp);
+          }
+
+          // Click fallback (desktop + any edge cases). Avoid double-fire after touch/pointer.
+          node.addEventListener('click', function(){
+            if (nowMs() - lastActivateMs < 350) return;
+            activate();
+          });
+
+          // Keyboard accessibility
+          node.setAttribute('tabindex','0');
+          node.addEventListener('keydown', function(e){
+            var k = e.key || e.code;
+            if (k === 'Enter' || k === ' ' || k === 'Spacebar'){
+              e.preventDefault();
+              activate();
+            }
+          });
+        })(a.id, card);
+
+        dom.athleteGrid.appendChild(card);
+      }
+    }
+
+    function renderResults(){
+      var lines = [];
+      lines.push('<div><b>Lap Log</b></div>');
+      lines.push('<div>Distance: ' + state.race.totalDistance + 'm</div>');
+      if (state.race.startWallClock) lines.push('<div>Start: ' + state.race.startWallClock + '</div>');
+      dom.resultsHeader.innerHTML = lines.join('');
+
+      dom.resultsContainer.innerHTML = '';
+      for (var i=0;i<state.athletes.length;i++){
+        var a = state.athletes[i];
+        var wrap = document.createElement('div');
+        wrap.style.marginBottom = '12px';
+        var title = document.createElement('div');
+        title.style.fontWeight = '950';
+        title.style.marginBottom = '6px';
+        title.textContent = a.name;
+        wrap.appendChild(title);
+
+        var scroller = document.createElement('div');
+        scroller.className = 'tblwrap';
+        var t = document.createElement('table');
+        t.className = 'tbl';
+        t.innerHTML = '<thead><tr>' +
+          '<th class="stickyL">Distance</th><th>Lap Target</th><th>Lap Time</th><th>Lap Δ</th><th>Total Target</th><th>Total Time</th><th>Total Δ</th>' +
+          '</tr></thead><tbody></tbody>';
+        var tb = t.querySelector('tbody');
+
+        for (var k=0;k<state.race.laps.length;k++){
+          var dist = 0; for (var z=0;z<=k;z++) dist += state.race.laps[z];
+          var rec = (a.laps.length>k) ? a.laps[k] : null;
+          var lapTarget = a.hasTargets ? a.targets.lapTargetSec[k] : null;
+          var cumTarget = a.hasTargets ? a.targets.cumTargetSec[k] : null;
+          var lapTime = rec ? rec.actualLapSec : null;
+          var cumTime = rec ? rec.actualCumSec : null;
+          var dLap = (rec && lapTarget!==null) ? (lapTime - lapTarget) : null;
+          var dCum = (rec && cumTarget!==null) ? (cumTime - cumTarget) : null;
+
+          var row = document.createElement('tr');
+          function td(txt, sticky){
+            var c=document.createElement('td');
+            c.textContent = txt;
+            if (sticky) c.className = 'stickyL';
+            return c;
+          }
+          row.appendChild(td(String(dist), true));
+          row.appendChild(td(formatTimeTenth(lapTarget)));
+          row.appendChild(td(formatTimeTenth(lapTime)));
+          row.appendChild(td(dLap===null?'—':(dLap>=0?'+ ':'- ') + formatTimeTenth(Math.abs(dLap))));
+          row.appendChild(td(formatTimeTenth(cumTarget)));
+          row.appendChild(td(formatTimeTenth(cumTime)));
+          row.appendChild(td(dCum===null?'—':(dCum>=0?'+ ':'- ') + formatTimeTenth(Math.abs(dCum))));
+          tb.appendChild(row);
+        }
+
+        scroller.appendChild(t);
+        wrap.appendChild(scroller);
+        dom.resultsContainer.appendChild(wrap);
+      }
+    }
+
+    function updateModalControls(){
+      var st = dom.splitType.value;
+      dom.variationWrap.style.display = (st === 'negative' || st === 'positive') ? 'block' : 'none';
+      dom.applyAllBtn.disabled = state.race.running || state.race.completed;
+    }
+
+    function renderSplitsTable(a){
+      var tbl = dom.splitsTable;
+      tbl.innerHTML = '';
+      var thead = document.createElement('thead');
+      var trh = document.createElement('tr');
+      var headers = ['Distance (m)','Lap Target','Pace (/km)','Total Target'];
+      for (var i=0;i<headers.length;i++){
+        var th = document.createElement('th');
+        th.textContent = headers[i];
+        if (i===0) th.className = 'stickyL';
+        trh.appendChild(th);
+      }
+      thead.appendChild(trh);
+      tbl.appendChild(thead);
+
+      var tb = document.createElement('tbody');
+      for (var k=0;k<state.race.laps.length;k++){
+        var dist = 0; for (var z=0;z<=k;z++) dist += state.race.laps[z];
+        var lapM = state.race.laps[k];
+        var tr = document.createElement('tr');
+        var td0 = document.createElement('td'); td0.textContent = String(dist); td0.className='stickyL';
+        var lapT = (a && a.hasTargets) ? a.targets.lapTargetSec[k] : null;
+        var cumT = (a && a.hasTargets) ? a.targets.cumTargetSec[k] : null;
+        var td1 = document.createElement('td'); td1.textContent = (lapT!==null)?formatTimeTenth(lapT):'—';
+        var td2 = document.createElement('td'); td2.textContent = (lapT!==null)?pacePerKmFromLap(lapT, lapM):'—';
+        var td3 = document.createElement('td'); td3.textContent = (cumT!==null)?formatTimeTenth(cumT):'—';
+        tr.appendChild(td0); tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+        tb.appendChild(tr);
+      }
+      tbl.appendChild(tb);
+    }
+
+    function renderModal(){
+      if (!state.modal.open){
+        dom.modalBackdrop.className = 'backdrop';
+        dom.modalBackdrop.setAttribute('aria-hidden','true');
+        return;
+      }
+      dom.modalBackdrop.className = 'backdrop show';
+      dom.modalBackdrop.setAttribute('aria-hidden','false');
+      var a = getAthlete(state.modal.athleteId);
+      dom.modalSub.textContent = 'Distance: ' + state.race.totalDistance + 'm · Targets must be set before Start.';
+      if (a) dom.modalName.value = a.name;
+      state.modal.originalName = a ? a.name : '';
+      renderSplitsTable(a);
+      updateModalControls();
+    }
+
+    function renderAll(){
+      renderSetup();
+      renderClock();
+      renderTrackingHeader();
+      renderAthleteGrid();
+      renderResults();
+      renderModal();
+    }
+
+    function applyPreset(key){
+      state.race.presetKey = key;
+      var found = null;
+      for (var i=0;i<state.presets.length;i++) if (state.presets[i].key===key) { found = state.presets[i]; break; }
+      if (found){
+        state.race.laps = found.laps.slice();
+        state.race.totalDistance = sum(state.race.laps);
+        state.race.structure = found.structure || (state.race.laps.length + ' laps');
+      }
+      for (var k=0;k<state.athletes.length;k++){
+        var a = state.athletes[k];
+        a.hasTargets = false;
+        a.targets = { lapTargetSec:[], cumTargetSec:[] };
+        a.targetsMeta = { goalSec:null, splitType:'', goalText:'' };
+        a.laps = [];
+        a.completed = false;
+        a.lastCaptureUndoUntilMs = 0;
+        a.lastCaptureKey = '';
+      }
+      stopRace();
+      state.race.completed = false;
+      state.race.pauseElapsedSec = 0;
+      state.race.startWallClock = null;
+      cancelPendingFinish();
+    }
+
+    function resetAllToNewRace(){
+      stopRace();
+      state.race.running = false;
+      state.race.completed = false;
+      state.race.pauseElapsedSec = 0;
+      state.race.startWallClock = null;
+      cancelPendingFinish();
+      state.race.presetKey = state.basePresets[0].key;
+      state.race.laps = state.basePresets[0].laps.slice();
+      state.race.structure = state.basePresets[0].structure;
+      state.race.totalDistance = sum(state.race.laps);
+      ensureAthletes(1);
+      for (var i=0;i<state.athletes.length;i++){
+        var a = state.athletes[i];
+        a.name = 'Athlete ' + a.id;
+        a.hasTargets = false;
+        a.targets = { lapTargetSec:[], cumTargetSec:[] };
+        a.targetsMeta = { goalSec:null, splitType:'', goalText:'' };
+        a.laps = [];
+        a.completed = false;
+        a.lastCaptureUndoUntilMs = 0;
+        a.lastCaptureKey = '';
+      }
+    }
+
+    function softResetRaceKeepTargets(){
+      stopRace();
+      state.race.completed = false;
+      state.race.pauseElapsedSec = 0;
+      state.race.startWallClock = null;
+      cancelPendingFinish();
+      for (var i=0;i<state.athletes.length;i++){
+        var a = state.athletes[i];
+        a.laps = [];
+        a.completed = false;
+        a.lastCaptureUndoUntilMs = 0;
+        a.lastCaptureKey = '';
+      }
+    }
+
+    function openModalForAthlete(id){
+      state.modal.open = true;
+      state.modal.athleteId = id;
+      dom.splitType.value = 'even';
+      dom.variationPct.value = '2.0';
+      updateModalControls();
+      renderModal();
+    }
+
+    function persistModalNameIfValid(){
+      var a = getAthlete(state.modal.athleteId);
+      if (!a) return;
+      var nm = (dom.modalName.value || '').trim();
+      if (nm === state.modal.originalName) return;
+      var nv = validateName(nm);
+      if (!nv.ok){ dom.nameErr.textContent = nv.msg; dom.nameErr.style.display='block'; return; }
+      dom.nameErr.style.display='none';
+      a.name = nm;
+    }
+
+    function closeModal(){
+      if (state.modal.open){
+        persistModalNameIfValid();
+      }
+      state.modal.open = false;
+      renderAll();
+    }
+
+    function onAthleteCardClick(id){
+      var a = getAthlete(id);
+      if (!a) return;
+      if (state.race.running){
+        if (nowMs() <= a.lastCaptureUndoUntilMs && a.laps.length){
+          if (undoLastLapIfAllowed(a)){ renderAll(); return; }
+        }
+        if (!a.completed){ captureLapForAthlete(a); renderAll(); }
+        return;
+      }
+      if (state.race.completed) return;
+      openModalForAthlete(id);
+    }
+
+    function onCalculateTargets(forAll){
+      var a = getAthlete(state.modal.athleteId);
+      if (!a) return;
+      var nm = (dom.modalName.value || '').trim();
+      var nv = validateName(nm);
+      if (!nv.ok){ dom.nameErr.textContent = nv.msg; dom.nameErr.style.display='block'; return; }
+      dom.nameErr.style.display='none';
+      var g = parseTimeToSeconds(dom.goalTime.value);
+      if (g === null){ dom.goalErr.textContent='Enter a valid time (e.g., 5:00).'; dom.goalErr.style.display='block'; return; }
+      dom.goalErr.style.display='none';
+      var st = dom.splitType.value;
+
+      var splitLabel = (st === 'even') ? 'Even' : (st === 'negative') ? 'Negative' : (st === 'positive') ? 'Positive' : st;
+      var goalText = formatTimeTenth(g);
+      var tgt = computeTargets(state.race.laps, g, st, dom.variationPct.value);
+      if (!tgt) return;
+
+      if (forAll){
+        for (var i=0;i<state.athletes.length;i++){
+          state.athletes[i].hasTargets = true;
+          state.athletes[i].targets = tgt;
+          state.athletes[i].targetsMeta = { goalSec:g, splitType: splitLabel, goalText: goalText };
+          state.athletes[i].laps = [];
+          state.athletes[i].completed = false;
+          state.athletes[i].lastCaptureUndoUntilMs = 0;
+          state.athletes[i].lastCaptureKey = '';
+        }
+        a.name = nm;
+      } else {
+        a.name = nm;
+        a.hasTargets = true;
+        a.targets = tgt;
+        a.targetsMeta = { goalSec:g, splitType: splitLabel, goalText: goalText };
+        a.laps = [];
+        a.completed = false;
+        a.lastCaptureUndoUntilMs = 0;
+        a.lastCaptureKey = '';
+      }
+      state.modal.originalName = nm;
+      renderAll();
+    }
+
+    function rowsToCsv(rows){
+      var out = [];
+      for (var i=0;i<rows.length;i++){
+        var cols = [];
+        for (var j=0;j<rows[i].length;j++) cols.push(formatCsvValue(rows[i][j]));
+        out.push(cols.join(','));
+      }
+      return out.join('\r\n');
+    }
+
+    function buildFlatCsvRows(){
+      var rows = [];
+      rows.push(['Athlete','Distance','Lap Target','Lap Time','Lap Δ','Total Target','Total Time','Total Δ']);
+      for (var i=0;i<state.athletes.length;i++){
+        var a = state.athletes[i];
+        for (var k=0;k<state.race.laps.length;k++){
+          var dist = 0; for (var z=0;z<=k;z++) dist += state.race.laps[z];
+          var rec = (a.laps.length>k) ? a.laps[k] : null;
+          var lapTarget = a.hasTargets ? a.targets.lapTargetSec[k] : null;
+          var cumTarget = a.hasTargets ? a.targets.cumTargetSec[k] : null;
+          var lapTime = rec ? rec.actualLapSec : null;
+          var cumTime = rec ? rec.actualCumSec : null;
+          var dLap = (rec && lapTarget!==null) ? (lapTime - lapTarget) : null;
+          var dCum = (rec && cumTarget!==null) ? (cumTime - cumTarget) : null;
+          rows.push([
+            a.name,
+            String(dist),
+            formatTimeTenth(lapTarget),
+            formatTimeTenth(lapTime),
+            dLap===null?'':((dLap>=0?'+ ':'- ') + formatTimeTenth(Math.abs(dLap))),
+            formatTimeTenth(cumTarget),
+            formatTimeTenth(cumTime),
+            dCum===null?'':((dCum>=0?'+ ':'- ') + formatTimeTenth(Math.abs(dCum)))
+          ]);
+        }
+      }
+      return rows;
+    }
+
+    function buildLapLogCsvRows(){
+      var meta = [];
+      meta.push(['Race Distance', state.race.totalDistance + 'm']);
+      meta.push(['Preset Structure', state.race.structure || '']);
+      meta.push(['Start Timestamp', state.race.startWallClock || '']);
+      meta.push([]);
+      var data = buildFlatCsvRows();
+      return meta.concat(data);
+    }
+
+    function shareResultsCsv(){
+      var csv = rowsToCsv(buildLapLogCsvRows());
+      var blob = new Blob([csv], {type:'text/csv'});
+      var name = 'Lap_Log_' + state.race.totalDistance + 'm_' + isoStamp() + '.csv';
+      return shareFileOrDownload(name, blob, 'Lap Log CSV');
+    }
+
+    function buildSplitsCsvRows(){
+      var a = getAthlete(state.modal.athleteId);
+      var meta = [];
+      meta.push(['Distance', state.race.totalDistance + 'm']);
+      meta.push(['Preset Structure', state.race.structure || '']);
+      meta.push(['Split Type', (a && a.targetsMeta && a.targetsMeta.splitType) ? a.targetsMeta.splitType : '' ]);
+      meta.push(['Goal Time', (a && a.targetsMeta && a.targetsMeta.goalText) ? a.targetsMeta.goalText : '' ]);
+      meta.push(['Generated', isoDate()]);
+      meta.push([]);
+      var rows = [];
+      rows.push(['Distance (m)','Lap Target','Pace (/km)','Total Target']);
+      for (var k=0;k<state.race.laps.length;k++){
+        var dist = 0; for (var z=0;z<=k;z++) dist += state.race.laps[z];
+        var lapM = state.race.laps[k];
+        var lapT = (a && a.hasTargets) ? a.targets.lapTargetSec[k] : null;
+        var cumT = (a && a.hasTargets) ? a.targets.cumTargetSec[k] : null;
+        rows.push([
+          String(dist),
+          (lapT!==null)?formatTimeTenth(lapT):'',
+          (lapT!==null)?pacePerKmFromLap(lapT, lapM):'',
+          (cumT!==null)?formatTimeTenth(cumT):''
+        ]);
+      }
+      return meta.concat(rows);
+    }
+
+    function shareSplitsCsv(){
+      var csv = rowsToCsv(buildSplitsCsvRows());
+      var blob = new Blob([csv], {type:'text/csv'});
+      var name = 'Target_Splits_' + state.race.totalDistance + 'm_' + isoDate() + '.csv';
+      return shareFileOrDownload(name, blob, 'Target Splits CSV');
+    }
+
+    function renderTableToImageCanvas(titleLines, tableEl){
+      var cellPadX = 10, cellPadY = 8;
+      var fontFamily = getComputedStyle(document.body).fontFamily;
+      var font = '14px ' + fontFamily;
+      var fontBold = '900 14px ' + fontFamily;
+      var fontTitle = '900 18px ' + fontFamily;
+      var rows = [];
+      var trs = tableEl.querySelectorAll('tr');
+      for (var i=0;i<trs.length;i++){
+        var tds = trs[i].children;
+        var row = [];
+        for (var j=0;j<tds.length;j++) row.push((tds[j].textContent || '').trim());
+        rows.push(row);
+      }
+      if (!rows.length) rows = [['(empty)']];
+      var cols = 0;
+      for (var r=0;r<rows.length;r++) cols = Math.max(cols, rows[r].length);
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      var colW = [];
+      for (var c=0;c<cols;c++) colW[c] = 80;
+      ctx.font = font;
+      for (var r2=0;r2<rows.length;r2++){
+        for (var c2=0;c2<cols;c2++){
+          var txt = (rows[r2][c2] || '');
+          var w = ctx.measureText(txt).width + cellPadX*2;
+          if (w > colW[c2]) colW[c2] = Math.min(320, w);
+        }
+      }
+      var width = 40;
+      for (var c3=0;c3<cols;c3++) width += colW[c3];
+      var titleH = 0;
+      for (var t=0;t<titleLines.length;t++) titleH += 24;
+      titleH += 18;
+      var rowH = 28;
+      var height = titleH + rows.length * rowH + 30;
+      canvas.width = Math.ceil(width * 2);
+      canvas.height = Math.ceil(height * 2);
+      ctx.scale(2,2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,width,height);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = fontTitle;
+      var y = 20;
+      for (var t2=0;t2<titleLines.length;t2++){ ctx.fillText(titleLines[t2], 20, y); y += 24; }
+      y += 8;
+      var x0 = 20, y0 = y;
+      for (var r3=0;r3<rows.length;r3++){
+        var x = x0;
+        for (var c4=0;c4<cols;c4++){
+          var w2 = colW[c4];
+          ctx.strokeStyle = 'rgba(15,23,42,.12)';
+          ctx.strokeRect(x, y0 + r3*rowH, w2, rowH);
+          var txt2 = (rows[r3][c4] || '');
+          ctx.fillStyle = '#0f172a';
+          ctx.font = (r3===0) ? fontBold : font;
+          ctx.fillText(txt2, x + cellPadX, y0 + r3*rowH + 19);
+          x += w2;
+        }
+      }
+      return canvas;
+    }
+
+    function shareResultsImage(){
+      var rows = buildFlatCsvRows();
+      var t = document.createElement('table');
+      t.className = 'tbl';
+      var headerRow = rows[0];
+      var thead = document.createElement('thead');
+      var trh = document.createElement('tr');
+      for (var i=0;i<headerRow.length;i++){ var th = document.createElement('th'); th.textContent = headerRow[i]; trh.appendChild(th); }
+      thead.appendChild(trh);
+      var tbody = document.createElement('tbody');
+      for (var r=1;r<rows.length;r++){
+        var tr = document.createElement('tr');
+        for (var c=0;c<headerRow.length;c++){ var td=document.createElement('td'); td.textContent = rows[r][c] || ''; tr.appendChild(td); }
+        tbody.appendChild(tr);
+      }
+      t.appendChild(thead); t.appendChild(tbody);
+      var titleLines = ['Lap Log', 'Distance: ' + state.race.totalDistance + 'm', 'Start: ' + (state.race.startWallClock || '')];
+      var canvas = renderTableToImageCanvas(titleLines, t);
+      return new Promise(function(resolve){
+        canvas.toBlob(function(blob){
+          if (!blob){ resolve(); return; }
+          shareFileOrDownload('Lap_Log_' + state.race.totalDistance + 'm_' + isoDate() + '.png', blob, 'Lap Log Image').then(resolve);
+        }, 'image/png');
+      });
+    }
+
+    function shareSplitsImage(){
+      var t = document.createElement('table');
+      t.className = 'tbl';
+      t.innerHTML = dom.splitsTable.innerHTML;
+      var titleLines = ['Target Splits', 'Distance: ' + state.race.totalDistance + 'm'];
+      var canvas = renderTableToImageCanvas(titleLines, t);
+      return new Promise(function(resolve){
+        canvas.toBlob(function(blob){
+          if (!blob){ resolve(); return; }
+          shareFileOrDownload('Target_Splits_' + state.race.totalDistance + 'm_' + isoDate() + '.png', blob, 'Target Splits Image').then(resolve);
+        }, 'image/png');
+      });
+    }
+
+    function tick(){
+      dom.clockText.textContent = formatTimeTenth(currentElapsedSec());
+      if (state.race.running || state.race.pauseElapsedSec){ renderAthleteGrid(); renderTrackingHeader(); }
+      requestAnimationFrame(tick);
+    }
+
+    dom.athleteCount.addEventListener('change', function(){
+      var n = parseInt(dom.athleteCount.value,10) || 1;
+      ensureAthletes(n);
+      renderAll();
+    });
+
+    dom.presetSelect.addEventListener('change', function(){
+      if (state.race.running) return;
+      applyPreset(dom.presetSelect.value);
+      renderAll();
+    });
+
+    dom.toggleCustom.addEventListener('click', function(){ state.ui.customOpen = !state.ui.customOpen; renderAll(); });
+
+    dom.saveCustomBtn.addEventListener('click', function(){
+      dom.customErr.style.display = 'none';
+      var name = (dom.customName.value || '').trim();
+      if (!name){ dom.customErr.textContent = 'Invalid Lap Structure'; dom.customErr.style.display='block'; return; }
+      var parsed = parseLapStructureStrict(dom.customLaps.value);
+      if (!parsed.ok){ dom.customErr.textContent = 'Invalid Lap Structure'; dom.customErr.style.display='block'; return; }
+      var id = 'c_' + Date.now();
+      state.customPresets.push({id:id, name:name, structure:parsed.structure, laps:parsed.laps});
+      saveCustomPresets(state.customPresets);
+      rebuildPresets();
+      dom.customName.value = '';
+      dom.customLaps.value = '';
+      renderAll();
+    });
+
+    dom.deleteCustomBtn.addEventListener('click', function(){
+      var id = dom.deleteCustomSelect.value;
+      if (!id) return;
+      state.customPresets = state.customPresets.filter(function(p){ return p.id !== id; });
+      saveCustomPresets(state.customPresets);
+      rebuildPresets();
+      var stillExists = state.presets.some(function(p){ return p.key === state.race.presetKey; });
+      if (!stillExists) applyPreset(state.basePresets[0].key);
+      renderAll();
+    });
+
+    dom.newRaceBtn.addEventListener('click', function(){
+      if (!confirm('Reset all race data and return to defaults?')) return;
+      resetAllToNewRace();
+      renderAll();
+    });
+
+    dom.startBtn.addEventListener('click', function(){
+      if (state.race.completed) return;
+      if (!state.race.running){
+        if (!canStart()) return;
+        startRace();
+        renderAll();
+      } else {
+        for (var i=0;i<state.athletes.length;i++){
+          if (!state.athletes[i].completed) captureLapForAthlete(state.athletes[i]);
+        }
+        renderAll();
+      }
+    });
+
+    dom.resetBtn.addEventListener('click', function(){ softResetRaceKeepTargets(); renderAll(); });
+
+    dom.closeModalBtn.addEventListener('click', closeModal);
+    dom.modalBackdrop.addEventListener('click', function(e){ if (e.target === dom.modalBackdrop) closeModal(); });
+
+    dom.splitType.addEventListener('change', updateModalControls);
+    dom.calcBtn.addEventListener('click', function(){ onCalculateTargets(false); });
+    dom.applyAllBtn.addEventListener('click', function(){ if (state.race.running || state.race.completed) return; onCalculateTargets(true); });
+
+    dom.shareResultsCsvBtn.addEventListener('click', function(){ shareResultsCsv(); });
+    dom.shareResultsImgBtn.addEventListener('click', function(){ shareResultsImage(); });
+    dom.shareSplitsCsvBtn.addEventListener('click', function(){ shareSplitsCsv(); });
+    dom.shareSplitsImgBtn.addEventListener('click', function(){ shareSplitsImage(); });
+
+    ensureAthletes(1);
+    applyPreset(state.basePresets[0].key);
+    ensureAthletes(1);
+    updateModalControls();
+    renderAll();
+    requestAnimationFrame(tick);
+  })();
+  </script>
+</body>
+</html>
